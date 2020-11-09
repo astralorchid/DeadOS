@@ -6,15 +6,10 @@ call getInitVideoMode
 call setInitVideoMode
 call clearScreen
 
-mov ax, 0
-mov dx, ax
-xor cx, cx
-xor bx, bx
-call hprint
-call newLine
 call newProgram
-call newProgram
+
 jmp $
+
 newProgram:
     call pmalloc
 
@@ -50,9 +45,6 @@ newProgram:
         call newLine
     ret
     
-
-
-
 pmalloc:
     mov ax, [loopSeg]
     push ax ;save segment
@@ -64,40 +56,18 @@ pmalloc:
 
     cmp bx, 0x70
     je .hasProgram
-    mov si, freespaceMsg
-    call sprint
-
-    mov ax, es
-    mov dx, ax
-    xor cx, cx
-    xor bx, bx
-    call hprint
-    call newLine
 
     pop ax
-    ;add ax, [segmentSize]
-    ;mov [loopSeg], ax
-    ;jmp pmalloc
 
     mov bx, [minSeg]
     mov [loopSeg], bx
     ret
 
     .hasProgram:
-    mov si, pallocMsg
-    call sprint
-
-    mov ax, [loopSeg]
-    mov dx, ax
-    xor cx, cx
-    xor bx, bx
-    call hprint
-    call newLine
-
-    pop ax
-    add ax, [segmentSize]
-    mov [loopSeg], ax
-    jmp pmalloc
+        pop ax
+        add ax, [segmentSize]
+        mov [loopSeg], ax
+        jmp pmalloc
 
     .segDone:
     pop ax
