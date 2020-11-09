@@ -5,7 +5,6 @@ sprint:
     call charInt
     jmp sprint
     .end:
-    ;call newLine
 ret
 
 charInt:
