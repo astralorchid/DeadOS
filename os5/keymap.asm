@@ -1,0 +1,10 @@
+;scancode in al
+SCANCODE_TO_ASCII:
+    push bx
+    mov bh, 0
+    mov bl, al
+    mov al, [KEYMAP+bx]
+    pop bx
+ret
+
+KEYMAP db 0, 0x1B, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30

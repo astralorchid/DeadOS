@@ -94,12 +94,9 @@ readChar:
     test al, 10000000b
     jnz .inputEnd
 
-    mov ah, 0
-    mov dx, ax
-    xor cx, cx
-    xor bx, bx
-    call hprint
-    call newLine
+    call SCANCODE_TO_ASCII
+
+    call charInt
 
     .inputEnd:
         mov al, 01100001b
@@ -108,6 +105,8 @@ readChar:
 iret
 
 %include 'print16.asm'
+%include 'keymap.asm'
+
 msg db 'returned to kernel', 0
 keyPressStr db 'Key Press', 0
 pallocMsg db 'Program allocated at ', 0
@@ -120,5 +119,8 @@ loopSeg dw 0x1000
 
 freeSeg dw 0
 irq1_ivt equ 0x0024
+
+keymap equ 0x9000
+keymap_size equ 0x5F*2
 
 times 2048-($-$$) db 0
