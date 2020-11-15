@@ -4,7 +4,7 @@ mov ds, ax
 
 call getInitVideoMode
 call setInitVideoMode
-call clearScreen
+;call clearScreen
 
 cli
     mov al, 0x00
@@ -16,6 +16,11 @@ mov [ds:irq1_ivt], word readChar
 mov [ds:irq1_ivt+2], word 0x00
 
 call newProgram
+mov al, 0x00
+mov ah, 0x0b
+mov bh, 0x00
+mov bl, 0x01
+int 0x10
 
 jmp $
 
