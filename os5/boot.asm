@@ -14,7 +14,7 @@ ret
 
 start:
     mov ah, 0x02 ;read
-    mov al, 0x04 ;#sectors
+    mov al, 0x08 ;#sectors
     mov ch, 0 ;cyl
     mov cl, 0x02 ;start from sector
     mov dh, 0x00 ;head

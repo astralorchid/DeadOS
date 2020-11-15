@@ -93,10 +93,18 @@ readChar:
 
     test al, 10000000b
     jnz .inputEnd
-
+    
+    push ax
     call SCANCODE_TO_ASCII
-
     call charInt
+    pop ax
+
+    mov ah, 0
+    mov dx, ax
+    xor cx, cx
+    xor bx, bx
+    call hprint
+    call newLine
 
     .inputEnd:
         mov al, 01100001b
@@ -123,4 +131,4 @@ irq1_ivt equ 0x0024
 keymap equ 0x9000
 keymap_size equ 0x5F*2
 
-times 2048-($-$$) db 0
+times 4096-($-$$) db 0
