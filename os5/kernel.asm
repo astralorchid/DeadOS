@@ -2,9 +2,49 @@
 xor ax, ax
 mov ds, ax
 
-call getInitVideoMode
-call setInitVideoMode
-;call clearScreen
+pop dx
+mov [DRIVE], dl
+
+
+
+SetVGASettings:
+    pusha
+    push ds
+        mov ax, 0xb800
+        mov ds, ax
+
+        xor cx, cx ;vga Y
+        xor bx, bx ;vga X
+
+        .storeMem:
+        mov [ds:bx], word 0x7000
+        cmp bx, SCREEN_WIDTH
+
+        jge .done
+
+        add bx, VGA_INC
+        jmp .storeMem
+            .done:
+    pop ds
+    popa
+
+call clearScreen
+;call getInitVideoMode
+;call setInitVideoMode
+
+mov si, welc 
+call sprint
+call newLine
+
+mov si, DriveStr
+call sprint
+
+mov ax, [DRIVE]
+mov dx, ax
+xor cx, cx
+xor bx, bx
+call hprint
+call newLine
 
 cli
     mov al, 0x00
@@ -15,12 +55,12 @@ sti
 mov [ds:irq1_ivt], word readChar 
 mov [ds:irq1_ivt+2], word 0x00
 
+mov si, kbStr
+call sprint
+call newLine
+
 call newProgram
-mov al, 0x00
-mov ah, 0x0b
-mov bh, 0x00
-mov bl, 0x01
-int 0x10
+call newProgram
 
 jmp $
 
@@ -32,21 +72,22 @@ newProgram:
     mov ah, 0x02 ;read
     mov al, 0x04 ;#sectors
     mov ch, 0x00 ;cyl
-    mov cl, 0x01 ;start from sector
+    mov cl, 0x0A ;start from sector
     mov dh, 0x00 ;head
-    mov dl, 0x01 ;drive
+    mov dl, [DRIVE] ;drive
     mov bx, 0x0000 ;offset dest
-    int 0x13
 
+    int 0x13
+    
     push ds ;save jmp segment
     push fromProgram
-
+ 
     mov ax, es
     mov ds, ax
 
     push es
     push bx
-    retf
+retf
 
     fromProgram:
         mov ax, 0
@@ -67,6 +108,8 @@ pmalloc:
     mov bx, [es:0x0000]
 
     cmp bx, 0x70
+        ;program descriptor table
+        ;eventually
     je .hasProgram
 
     pop ax
@@ -115,11 +158,13 @@ iret
 %include 'print16.asm'
 %include 'keymap.asm'
 
-msg db 'returned to kernel', 0
+msg db 'RETURNED TO KERNEL', 0
 keyPressStr db 'Key Press', 0
 pallocMsg db 'Program allocated at ', 0
 freespaceMsg db 'Free segment at ', 0
-
+welc db 'DeadOS x86 build 0', 0
+DriveStr db 'Hard disk port ', 0
+kbStr db 'Intialized custom IRQ1 handler', 0
 segmentSize dw 0x1000
 minSeg dw 0x1000
 maxSeg dw 0x8000
@@ -131,4 +176,8 @@ irq1_ivt equ 0x0024
 keymap equ 0x9000
 keymap_size equ 0x5F*2
 
+SCREEN_WIDTH equ 0x9E*26
+SCREEN_LENGTH equ 20
+VGA_INC equ 0x02
+DRIVE db 0
 times 4096-($-$$) db 0
