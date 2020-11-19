@@ -5,12 +5,20 @@ mov ds, ax
 pop dx ;transferred from boot
 mov [DRIVE], dl
 
+call getInitVideoMode
+call setInitVideoMode
+
 mov si, DRIVE_STR
 call sprint
-
 call hprint.drive
+call newLine
+
+call irq.driver
+call irq.printEnabledIRQ
+call newLine
 
 jmp $
 
-%include '../kernel_data.asm'
+%include '../kernel/kernel_data.asm'
+%include '../kernel/irq.asm'
 times 4096-($-$$) db 0
