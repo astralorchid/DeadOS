@@ -7,30 +7,8 @@ mov [DRIVE], dl
 
 
 
-SetVGASettings:
-    pusha
-    push ds
-        mov ax, 0xb800
-        mov ds, ax
+call getInitVideoMode
 
-        xor cx, cx ;vga Y
-        xor bx, bx ;vga X
-
-        .storeMem:
-        mov [ds:bx], word 0x7000
-        cmp bx, SCREEN_WIDTH
-
-        jge .done
-
-        add bx, VGA_INC
-        jmp .storeMem
-            .done:
-    pop ds
-    popa
-
-call clearScreen
-;call getInitVideoMode
-;call setInitVideoMode
 
 mov si, welc 
 call sprint
@@ -46,21 +24,44 @@ xor bx, bx
 call hprint
 call newLine
 
-cli
-    mov al, 0x00
-    out 0xa1, al
-    out 0x21, al
-sti
-
-mov [ds:irq1_ivt], word readChar 
-mov [ds:irq1_ivt+2], word 0x00
-
 mov si, kbStr
 call sprint
 call newLine
 
 call newProgram
 call newProgram
+
+
+
+
+
+cli
+    mov al, 0x36
+    out 0x43, al    ;tell the PIT which channel we're setting
+
+    mov al, 0xFF
+    out 0x40, al    ;send low byte
+    mov al, 0xFF
+    out 0x40, al    ;send high byte
+
+    mov al, 0x00
+    out 0xa1, al
+    out 0x21, al
+
+    mov al, 0x36
+    out 0x43, al    ;tell the PIT which channel we're setting
+
+    mov al, 0xFF
+    out 0x40, al    ;send low byte
+    mov al, 0xFF
+    out 0x40, al    ;send high byte
+
+    mov [ds:irq1_ivt], word readChar 
+    mov [ds:irq1_ivt+2], word 0x00
+
+    mov [ds:irq0_ivt], word IRQ0Handler
+    mov [ds:irq0_ivt+2], word 0x00
+sti
 
 jmp $
 
@@ -155,13 +156,46 @@ readChar:
     pop ax
 iret
 
+IRQ0Handler:
+pusha
+
+mov ah, 0x0e
+mov al, byte 'e'
+int 0x10
+times 20 nop
+    mov al, 0x20
+    out 0x20, al  
+popa
+iret
+
+SetVGASettings:
+    pusha
+    push ds
+        mov ax, 0xb800
+        mov ds, ax
+
+        ;xor cx, cx ;vga Y
+        xor bx, bx ;vga X
+
+        .storeMem:
+        mov [ds:bx], cx
+
+        cmp bx, SCREEN_WIDTH
+
+        jge .done
+
+        add bx, VGA_INC
+        jmp .storeMem
+    .done:
+    pop ds
+    popa
+
 %include 'print16.asm'
 %include 'keymap.asm'
 
 msg db 'RETURNED TO KERNEL', 0
 keyPressStr db 'Key Press', 0
 pallocMsg db 'Program allocated at ', 0
-freespaceMsg db 'Free segment at ', 0
 welc db 'DeadOS x86 build 0', 0
 DriveStr db 'Hard disk port ', 0
 kbStr db 'Intialized custom IRQ1 handler', 0
@@ -171,6 +205,8 @@ maxSeg dw 0x8000
 loopSeg dw 0x1000
 
 freeSeg dw 0
+
+irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
 
 keymap equ 0x9000
