@@ -47,6 +47,10 @@ irq:
         mov [ds:irq0_ivt+2], word 0x00
     ret
 
+    .MAP_IRQx:
+
+    ret
+
     .ENABLE_IRQx:
         push ax
         push bx
