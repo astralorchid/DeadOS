@@ -10,7 +10,11 @@ irq:
             out 0x40, al
 
             ;set kernel ivt
-            call irq.map_irq0
+            ;call irq.map_irq0
+            mov ax, word .irq0
+            mov bx, word 0x0020
+            call irq.MAP_IRQx
+
             call irq.map_irq1
 
             mov bl, [IRQ_MASKS]
@@ -33,6 +37,9 @@ irq:
 
     .irq0:
         pusha
+            ;scheduler
+            ;maybe next year
+
             mov ah, 0x0e
             mov al, byte 'e'
             int 0x10
@@ -47,8 +54,11 @@ irq:
         mov [ds:irq0_ivt+2], word 0x00
     ret
 
+    ;mov ax, word .irq#
+    ;mov bx, word irq # (ivt offset based)
     .MAP_IRQx:
-
+        mov [ds:bx], word ax
+        mov [ds:bx+2], word ds
     ret
 
     .ENABLE_IRQx:
@@ -70,7 +80,7 @@ irq:
         push bx
 
         mov al, [IRQ_FLAGS]
-        or al, bl
+        or al, bl ;BOOL!
         
         mov [IRQ_FLAGS], al
 
