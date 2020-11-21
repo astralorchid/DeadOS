@@ -2,6 +2,9 @@
 xor ax, ax
 mov ds, ax
 
+pop ax
+
+mov [KERNEL_SIZE], byte al
 pop dx ;transferred from boot
 mov [DRIVE], dl
 
@@ -16,6 +19,11 @@ call newLine
 call irq.driver
 call irq.printEnabledIRQ
 call newLine
+
+xor ah, ah
+mov al, byte [KERNEL_SIZE]
+call hprep
+call hprint
 
 jmp $
 

@@ -10,15 +10,11 @@ irq:
             out 0x40, al
 
             ;set kernel ivt
-            ;call irq.map_irq0
-            mov ax, word .irq0
-            mov bx, word 0x0020
-            call irq.MAP_IRQx
-
-            call irq.map_irq1
+            call irq.MAP_KERNEL
 
             mov bl, [IRQ_MASKS]
             call .ENABLE_IRQx
+
             mov bl, [IRQ_MASKS+1]
             call .ENABLE_IRQx
 
@@ -26,6 +22,20 @@ irq:
             out 0xa1, al
             out 0x21, al
         sti
+    ret
+
+    ;mov ax, handler
+    ;mov bx, 0x0100 (interrupt hex # ivt offset)
+
+
+    .MAP_KERNEL:
+        mov ax, word .irq0
+        mov bx, word irq0_ivt
+        call irq.MAP_IRQx
+
+        mov ax, word .irq1
+        mov bx, word irq1_ivt
+        call irq.MAP_IRQx
     ret
 
     .printEnabledIRQ:
@@ -39,10 +49,6 @@ irq:
         pusha
             ;scheduler
             ;maybe next year
-
-            mov ah, 0x0e
-            mov al, byte 'e'
-            int 0x10
 
             mov al, 0x20
             out PIC0, al  

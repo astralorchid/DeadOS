@@ -20,6 +20,7 @@ start:
     ;too lazy to make macro :)
     mov ah, 0x02 ;read
     mov al, KERNEL_RESERVE_SECTORS ;#sectors
+    push ax ;save kernel sectors
     mov ch, 0 ;cyl
     mov cl, 0x02 ;start from sector
     mov dh, 0x00 ;head
@@ -27,15 +28,12 @@ start:
     mov bx, KERNEL_START ;offset dest
 
     int 0x13
-
-
+    
     jmp KERNEL_START
-
-
 jmp $
 
 DRIVE db 0
-KERNEL_RESERVE_SECTORS equ 0x08
+KERNEL_RESERVE_SECTORS equ 0x0A
 KERNEL_START equ 0x7e00
 times 510-($-$$) db 0
 db 0x55
