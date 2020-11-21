@@ -1,5 +1,15 @@
+software:
+-nasm
+-bochs
+-rufus
+
+hardware:
+-usb drive that you don't need
+-test rig w/ usb booting & bios
+
 use what is in the os6 folder
-i dont feel like making a bochs tutorial
+non tuts yet bc no time
+
 running successfully on some version of an athlon XP 
 good luck
 
