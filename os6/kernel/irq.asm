@@ -18,15 +18,20 @@ irq:
             mov bl, [IRQ_MASKS+1]
             call .ENABLE_IRQx
 
-            mov al, [IRQ_FLAGS] ;enable pic
-            out 0xa1, al
-            out 0x21, al
+            call .ENABLE_PIC
         sti
     ret
 
     ;mov ax, handler
     ;mov bx, 0x0100 (interrupt hex # ivt offset)
 
+    .ENABLE_PIC:
+        push ax
+        mov al, [IRQ_FLAGS] ;enable pic
+        out 0xa1, al
+        out 0x21, al
+        pop ax
+    ret
 
     .MAP_KERNEL:
         mov ax, word .irq0
@@ -36,13 +41,23 @@ irq:
         mov ax, word .irq1
         mov bx, word irq1_ivt
         call irq.MAP_IRQx
+
+        mov si, MAP_KERNEL_STR
+        call sprint
+        call newLine
     ret
 
     .printEnabledIRQ:
+        push ax
+        mov si, IRQ_FLAGS_STR
+        call sprint
+
         in al, 0x21
         xor ah, ah
         call hprep
         call hprint
+        call newLine
+        pop ax
     ret
 
     .irq0:
@@ -55,43 +70,55 @@ irq:
         popa
     iret
 
-    .map_irq0:
-        mov [ds:irq0_ivt], word .irq0
-        mov [ds:irq0_ivt+2], word 0x00
-    ret
-
     ;mov ax, word .irq#
     ;mov bx, word irq # (ivt offset based)
     .MAP_IRQx:
         mov [ds:bx], word ax
         mov [ds:bx+2], word ds
     ret
-
+    
+    ;mov bl, irq mask
     .ENABLE_IRQx:
         push ax
         push bx
+            mov si, ENABLE_IRQ_STR
+            call sprint
+
+            mov al, bl
+            xor ah, ah
+            call hprep
+            call hprint
+            call newLine
+        pop bx
+        pop ax
 
         mov al, [IRQ_FLAGS]
-        xor al, bl
+        xor al, bl ;BOOL!
 
         mov [IRQ_FLAGS], al
 
-        pop bx
-        pop ax
     ret
 
-    ;mov bl, IRQx_DISABLE_MASK
+    ;mov bl, irq mask
     .DISABLE_IRQx:
         push ax
         push bx
+            mov si, DISABLE_IRQ_STR
+            call sprint
+
+            mov al, bl
+            xor ah, ah
+            call hprep
+            call hprint
+            call newLine
+        pop bx
+        pop ax
 
         mov al, [IRQ_FLAGS]
+
         or al, bl ;BOOL!
         
         mov [IRQ_FLAGS], al
-
-        pop bx
-        pop ax
     ret
 
     .irq1:
@@ -118,11 +145,6 @@ irq:
         pop ax
     iret
 
-    .map_irq1:
-        mov [ds:irq1_ivt], word .irq1
-        mov [ds:irq1_ivt+2], word 0x00
-    ret
-
 %include '../keymap.asm'
 irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
@@ -133,6 +155,9 @@ IRQ_MASKS:
 
 IRQ_FLAGS:
     db 01111111b
-
+IRQ_FLAGS_STR db 'IRQ FLAG WORD STATUS ', 0 
+ENABLE_IRQ_STR db 'ENABLE IRQ MASK ', 0
+DISABLE_IRQ_STR db 'DISABLE IRQ MASK ', 0
+MAP_KERNEL_STR db 'MAPPED KERNEL IVT ', 0
 PIC0 equ 0x20 ;also 
 PIC1 equ 0xa0 ;command ports

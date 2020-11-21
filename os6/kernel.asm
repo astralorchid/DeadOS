@@ -16,14 +16,25 @@ call sprint
 call hprint.drive
 call newLine
 
-call irq.driver
-call irq.printEnabledIRQ
-call newLine
-
+mov si, KERNEL_SIZE_STR
+call sprint
 xor ah, ah
 mov al, byte [KERNEL_SIZE]
 call hprep
 call hprint
+call newLine
+
+call irq.driver
+
+call irq.printEnabledIRQ
+
+cli
+    mov bl, [IRQ_MASKS+1]
+    call irq.DISABLE_IRQx
+    call irq.ENABLE_PIC
+sti
+
+call irq.printEnabledIRQ
 
 jmp $
 
