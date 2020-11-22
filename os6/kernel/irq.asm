@@ -18,18 +18,27 @@ irq:
             mov bl, [IRQ_MASKS+1]
             call .ENABLE_IRQx
 
-            call .ENABLE_PIC
+            call .ENABLE_MASTER_PIC
+            call .ENABLE_SLAVE_PIC
         sti
     ret
 
     ;mov ax, handler
     ;mov bx, 0x0100 (interrupt hex # ivt offset)
 
-    .ENABLE_PIC:
+    .ENABLE_MASTER_PIC:
         push ax
         mov al, [IRQ_FLAGS] ;enable pic
-        out 0xa1, al
+
         out 0x21, al
+        pop ax
+    ret
+
+    .ENABLE_SLAVE_PIC:
+        push ax
+        mov al, [IRQ_SLAVE_FLAGS] ;enable pic
+        out 0xa1, al
+
         pop ax
     ret
 
@@ -154,8 +163,9 @@ IRQ_MASKS:
     db 00000010b
 
 IRQ_FLAGS:
+    db 00000011b
+IRQ_SLAVE_FLAGS:
     db 00000000b
-    
 IRQ_FLAGS_STR db 'IRQ FLAG WORD STATUS ', 0 
 ENABLE_IRQ_STR db 'ENABLE IRQ MASK ', 0
 DISABLE_IRQ_STR db 'DISABLE IRQ MASK ', 0

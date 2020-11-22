@@ -121,5 +121,6 @@ hstring db 0
 hcounter dw 4
 HEX_DEF db '0x', 0
 KERNEL_SIZE db 0x00
+readProgram dw 0
 ;vga
 defaultVideoMode db 0 

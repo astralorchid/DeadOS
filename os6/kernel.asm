@@ -3,13 +3,17 @@ xor ax, ax
 mov ds, ax
 
 pop ax
+mov [readProgram], ax
 
+pop ax
 mov [KERNEL_SIZE], byte al
 pop dx ;transferred from boot
 mov [DRIVE], dl
 
 call getInitVideoMode
 call setInitVideoMode
+
+call [readProgram]
 
 mov si, DRIVE_STR
 call sprint
@@ -31,15 +35,14 @@ call irq.printEnabledIRQ
 cli
     mov bl, [IRQ_MASKS+1]
     call irq.DISABLE_IRQx
-    call irq.ENABLE_PIC
+    call irq.ENABLE_MASTER_PIC
 sti
-
 call irq.printEnabledIRQ
-call pdt.map
+;call pdt.map
 
 jmp $
 
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
 %include '../kernel/pdt.asm'
-times 7680-($-$$) db 0
+times 5120-($-$$) db 0

@@ -28,12 +28,27 @@ start:
     mov bx, KERNEL_START ;offset dest
 
     int 0x13
+
+    mov ax, readProgram
+    push ax
     
     jmp KERNEL_START
+
+readProgram:
+    mov ah, 0x02 ;read
+        mov al, 0x01  ;#sectors
+        mov ch, 0 ;cyl
+        mov cl, 12 ;start from sector
+        mov dh, 0x00 ;head
+        mov dl, [DRIVE] ;drive
+        mov bx, 0x1000;offset dest
+    int 0x13
+ret
+
 jmp $
 
 DRIVE db 0
-KERNEL_RESERVE_SECTORS equ 15
+KERNEL_RESERVE_SECTORS equ 10
 KERNEL_START equ 0x7e00
 times 510-($-$$) db 0
 db 0x55
