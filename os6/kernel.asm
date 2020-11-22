@@ -35,9 +35,11 @@ cli
 sti
 
 call irq.printEnabledIRQ
+call pdt.map
 
 jmp $
 
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
-times 4096-($-$$) db 0
+%include '../kernel/pdt.asm'
+times 7680-($-$$) db 0

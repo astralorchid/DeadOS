@@ -33,7 +33,7 @@ start:
 jmp $
 
 DRIVE db 0
-KERNEL_RESERVE_SECTORS equ 0x0A
+KERNEL_RESERVE_SECTORS equ 15
 KERNEL_START equ 0x7e00
 times 510-($-$$) db 0
 db 0x55
