@@ -37,9 +37,15 @@ start:
 readProgram:
     ;bx = sector offset
     ;dh = head
-    add bx, KERNEL_RESERVE_SECTORS
-    inc bx
+    cmp ah, 0
+    je .addKernelSize 
+    jmp .readSector
 
+    .addKernelSize:
+    add bl, KERNEL_RESERVE_SECTORS
+    inc bl
+
+    .readSector:
     mov ah, 0x02 ;read
         mov al, 0x01  ;#sectors
         mov ch, 0 ;cyl
