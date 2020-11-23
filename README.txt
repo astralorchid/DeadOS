@@ -15,7 +15,7 @@ hardware:
 
 
 non tuts yet bc no time
-no docs yet bc i havent even used all of my api yet
+no docs yet bc i havent even used all of my api
 
 running successfully on some version of an AMD athlon XP
 
