@@ -14,6 +14,7 @@ pdt:
     mov bx, 1 ;Sector offset
     push bx
     .readLoop:
+        mov dh, 0x00 ;head
         call [readProgram]
         call .isProgram
         pop bx

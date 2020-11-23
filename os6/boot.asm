@@ -44,7 +44,7 @@ readProgram:
         mov al, 0x01  ;#sectors
         mov ch, 0 ;cyl
         mov cl, bl ;start from sector
-        mov dh, 0x00 ;head
+        ;mov dh, 0x00 ;head
         mov dl, [DRIVE] ;drive
         mov bx, 0x1000;offset dest
     int 0x13
