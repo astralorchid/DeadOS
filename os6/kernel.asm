@@ -32,12 +32,14 @@ call irq.driver
 
 call irq.printEnabledIRQ
 
-cli
-    mov bl, [IRQ_MASKS+1]
-    call irq.DISABLE_IRQx
-    call irq.ENABLE_MASTER_PIC
-sti
-call irq.printEnabledIRQ
+;cli
+    ;mov bl, [IRQ_MASKS+1]
+    ;mov dx, 0
+    ;call irq.DISABLE_IRQx
+    ;call irq.ENABLE_MASTER_PIC
+;sti
+;call irq.printEnabledIRQ
+
 call pdt.map
 
 jmp $

@@ -2,27 +2,28 @@
 ;pdt starts at 0x0000:0x0500
 
 pdt:
-    .map:
+.map:
     push es
     mov ax, 0x0000
     mov es, ax
-
-        mov bx, 1 ;Sector offset
-        push bx
-
-        .readLoop:
-        call [readProgram]
-        call .isProgram
-        call newLine
-        pop bx
-        cmp bx, 3
-        je .readDone
-        inc bx
-        push bx
-        jmp .readLoop
-        .readDone:
+        call .readHead0
     pop es
     ret
+
+.readHead0:
+    mov bx, 1 ;Sector offset
+    push bx
+    .readLoop:
+        call [readProgram]
+        call .isProgram
+        pop bx
+            cmp bx, 4
+            je .readDone
+            inc bx
+        push bx
+        jmp .readLoop
+    .readDone:
+ret
 
     .isProgram:
         mov cx, PROGRAM_STR_LEN  
@@ -35,12 +36,13 @@ pdt:
 
         mov si, msg_noprogram
         call sprint
-
+        call newLine
         ret
 
         .equ_str:
         mov si, msg_hasprogram
         call sprint
+        call newLine
     ret
 ret
 

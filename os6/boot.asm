@@ -35,7 +35,8 @@ start:
     jmp KERNEL_START
 
 readProgram:
-
+    ;bx = sector offset
+    ;dh = head
     add bx, KERNEL_RESERVE_SECTORS
     inc bx
 
