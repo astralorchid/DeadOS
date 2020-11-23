@@ -7,6 +7,7 @@ mov [readProgram], ax
 
 pop ax
 mov [KERNEL_SIZE], byte al
+
 pop dx ;transferred from boot
 mov [DRIVE], dl
 
