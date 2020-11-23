@@ -22,4 +22,4 @@ running successfully on some version of an AMD athlon XP
 good luck
 
 notice: all screen output is intentional
-if you encounter any bugs PAST runtime please contact me
+if you encounter any bugs during runtime please contact me
