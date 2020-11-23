@@ -38,7 +38,7 @@ cli
     call irq.ENABLE_MASTER_PIC
 sti
 call irq.printEnabledIRQ
-;call pdt.map
+call pdt.map
 
 jmp $
 

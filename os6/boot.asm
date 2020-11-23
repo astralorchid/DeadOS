@@ -35,10 +35,14 @@ start:
     jmp KERNEL_START
 
 readProgram:
+
+    add bx, KERNEL_RESERVE_SECTORS
+    inc bx
+
     mov ah, 0x02 ;read
         mov al, 0x01  ;#sectors
         mov ch, 0 ;cyl
-        mov cl, 12 ;start from sector
+        mov cl, bl ;start from sector
         mov dh, 0x00 ;head
         mov dl, [DRIVE] ;drive
         mov bx, 0x1000;offset dest
@@ -50,6 +54,7 @@ jmp $
 DRIVE db 0
 KERNEL_RESERVE_SECTORS equ 10
 KERNEL_START equ 0x7e00
+READ_OFFSET db 0
 times 510-($-$$) db 0
 db 0x55
 db 0xAA

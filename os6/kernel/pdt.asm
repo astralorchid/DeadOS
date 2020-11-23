@@ -6,20 +6,21 @@ pdt:
     push es
     mov ax, 0x0000
     mov es, ax
-        mov ah, 0x02 ;read
-        mov al, 0x01  ;#sectors
-        mov ch, 0 ;cyl
-        mov cl, 12 ;start from sector
-        mov dh, 0x00 ;head
-        mov dl, [DRIVE] ;drive
-        mov bx, PROGRAM_READ_OFFSET;offset dest
-        int 0x13
 
-        mov ah, 0x0e
-        mov al, [bx]
-        int 0x10
+        mov bx, 1 ;Sector offset
+        push bx
 
+        .readLoop:
+        call [readProgram]
         call .isProgram
+        call newLine
+        pop bx
+        cmp bx, 3
+        je .readDone
+        inc bx
+        push bx
+        jmp .readLoop
+        .readDone:
     pop es
     ret
 
@@ -49,4 +50,4 @@ msg_hasprogram db 'program found', 0
 msg_noprogram db 'program not found', 0
 SectorOffset db 1
 MAX_SECTORS equ 63
-PROGRAM_READ_OFFSET equ 0xF000
+PROGRAM_READ_OFFSET equ 0x1000
