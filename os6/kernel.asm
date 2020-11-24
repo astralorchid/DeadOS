@@ -43,6 +43,8 @@ call irq.printEnabledIRQ
 
 call pdt.map
 
+mov ax, 1
+
 jmp $
 
 %include '../kernel/kernel_data.asm'

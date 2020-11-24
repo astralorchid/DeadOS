@@ -7,9 +7,8 @@ pdt:
     mov ax, 0x0000
     mov es, ax
 
-    mov ax, 1; pdt offset
-    push ax
-
+    ;mov ax, 1; pdt offset
+    ;push ax
     cmp [IS_BOCHS], byte 1
     je .BochsDriver
 
@@ -23,7 +22,7 @@ pdt:
 
         mov [HEAD0_SECTORS], byte 4
         call .readHead0
-        call .readHeads
+        ;call .readHeads
 
     .endDriver:
     pop es
@@ -39,6 +38,14 @@ ret
         mov ah, 0; 0 - head0 check, 1 - all other heads
         call [readProgram]
         call .isProgram
+
+            cmp bx, 0
+        je .noProgramHead0
+        
+        call .PDTEntry
+        call newLine
+
+        .noProgramHead0:
         pop bx
             cmp bl, [HEAD0_SECTORS]
             je .readDone
@@ -58,8 +65,15 @@ ret
         mov ah, 1; 0 - head0 check, 1 - all other heads
         call [readProgram]
         call .isProgram
-        pop bx
 
+        cmp bx, 0
+        je .noProgramHeads
+        
+        call .PDTEntry
+        call newLine
+
+        .noProgramHeads:
+        pop bx
         cmp bl, 15
         jl .incSector
         je .incHead
@@ -95,13 +109,36 @@ ret
         mov si, msg_noprogram
         call sprint
         call newLine
+        mov bx, 0
         ret
 
         .equ_str:
         mov si, msg_hasprogram
         call sprint
         call newLine
+        mov bx, 1
     ret
+ret
+
+.PDTEntry:
+    mov ax, PDT_OFFSET
+    mov bx, PDT_START
+    mov cx, 0
+
+    .addPDTOffset:
+        cmp cx, [PDT_ENTRY]
+        je .addedPDTOffset
+        add bx, ax ;bx = start of entry
+        inc cx
+        jmp .addPDTOffset
+
+    .addedPDTOffset:
+        mov al, [PDT_ENTRY]
+        inc al
+        mov [PDT_ENTRY], al
+        mov ax, bx
+        call hprep
+        call hprint
 ret
 
 PROGRAM_STR db 'program', 0
@@ -112,4 +149,7 @@ SectorOffset db 1
 MAX_SECTORS equ 63
 PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
-IS_BOCHS db 0
+IS_BOCHS db 1
+PDT_START equ 0x0500
+PDT_OFFSET equ 2
+PDT_ENTRY db 0
