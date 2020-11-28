@@ -54,6 +54,9 @@ ret
             push ax
 
             mov bx, word [PDT_ENTRY]
+            
+            cmp [ds:bx], byte 0 ;funny sector exploit
+            jnz .contreadLoop
 
             mov byte [ds:bx], al ;save start sector
             mov byte [ds:bx+1], ah ;save head
@@ -97,8 +100,12 @@ ret
             pop ax
             push ax
 
+            cmp [ds:bx], byte 0 ;funny sector exploit
+            jnz .contreadLoop2
+
             mov bx, word [PDT_ENTRY]
             mov byte [ds:bx], al
+            mov byte [ds:bx+1], ah ;save head
 
             call hprep
             call hprint
