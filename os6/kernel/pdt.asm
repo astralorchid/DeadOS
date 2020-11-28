@@ -14,15 +14,15 @@ pdt:
 
     .RigDriver:
 
-        mov [HEAD0_SECTORS], byte 10
+        mov [HEAD0_SECTORS], byte 6
         call .readHead0
         jmp .endDriver
 
     .BochsDriver:
 
-        mov [HEAD0_SECTORS], byte 4
+        mov [HEAD0_SECTORS], byte 4 ;do not change
         call .readHead0
-        ;call .readHeads
+        call .readHeads
 
     .endDriver:
     pop es
@@ -39,21 +39,39 @@ ret
         call [readProgram]
         call .isProgram
 
-            cmp bx, 0
-        je .noProgramHead0
-        
+        cmp bx, 0
+        jz .noProgramHead0
+
         call .PDTEntry
         call newLine
 
         .noProgramHead0:
+
+            cmp [PDT_ENTRY], word 0
+            jz NoPrograms_Error
+
+            pop ax
+            push ax
+
+            mov bx, word [PDT_ENTRY]
+
+            mov byte [ds:bx], al ;save start sector
+            mov byte [ds:bx+1], ah ;save head
+            
+            call hprep
+            call hprint
+            call newLine
+
+        .contreadLoop:
         pop bx
             cmp bl, [HEAD0_SECTORS]
             je .readDone
             inc bl
         push bx
         jmp .readLoop
-    .readDone:
-ret
+
+        .readDone:
+    ret
 
 .readHeads:
     mov bh, 1; head
@@ -67,14 +85,28 @@ ret
         call .isProgram
 
         cmp bx, 0
-        je .noProgramHeads
-        
+        jz .noProgramHeads
+
         call .PDTEntry
         call newLine
 
         .noProgramHeads:
+            cmp [PDT_ENTRY], word 0
+            jz NoPrograms_Error
+
+            pop ax
+            push ax
+
+            mov bx, word [PDT_ENTRY]
+            mov byte [ds:bx], al
+
+            call hprep
+            call hprint
+            call newLine
+
+        .contreadLoop2:
         pop bx
-        cmp bl, 15
+        cmp bl, 4 ;#sectors to read
         jl .incSector
         je .incHead
 
@@ -99,12 +131,13 @@ ret
 
     .isProgram:
         mov cx, PROGRAM_STR_LEN  
-        cld           
+        ;cld           
         mov si, PROGRAM_READ_OFFSET
         mov di, PROGRAM_STR
-        repe cmpsb     
+        rep cmpsb 
+
         cmp cx, 0
-        je .equ_str 
+        jz .equ_str 
 
         mov si, msg_noprogram
         call sprint
@@ -141,15 +174,23 @@ ret
         call hprint
 ret
 
+NoPrograms_Error:
+    mov si, [NoproErrorStr]
+    call sprint
+    jmp $
+ret
+
 PROGRAM_STR db 'program', 0
 PROGRAM_STR_LEN equ $-PROGRAM_STR
 msg_hasprogram db 'program found', 0
 msg_noprogram db 'program not found', 0
+NoproErrorStr db 'PDT Entry Fail: No initial program.', 0
 SectorOffset db 1
 MAX_SECTORS equ 63
 PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 1
 PDT_START equ 0x0500
-PDT_OFFSET equ 2
+PDT_OFFSET equ 8
 PDT_ENTRY db 0
+CURRENT_PDT_ENTRY db 0

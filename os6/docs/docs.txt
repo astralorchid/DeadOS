@@ -12,3 +12,11 @@ pdt.isProgram:
         0: no program
         1: program
 
+
+0x0000:0x0500 - Program Descriptor Table:
+
++:0x0000 - Start sector (byte)
++:0x0001 - Head (byte)
++:0x0002 - Program name (string byte)
++:0x000A - End program name
+
