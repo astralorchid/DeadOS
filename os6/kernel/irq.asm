@@ -50,6 +50,10 @@ irq:
         mov bx, word irq1_ivt
         call irq.MAP_IRQx
 
+        mov ax, word .iMAP_IRQx
+        mov bx, word irq20_ivt
+        call irq.MAP_IRQx
+
         mov si, MAP_KERNEL_STR
         call sprint
         call newLine
@@ -81,16 +85,15 @@ irq:
     ;mov ax, word .irq#
     ;mov bx, word irq # (ivt offset based)
 .MAP_IRQx:
-    push ds
-    push ax
-    xor ax, ax
-    mov ds, ax
-    pop ax
-
     mov [ds:bx], word ax
     mov [ds:bx+2], word ds
-    pop ds
 ret
+
+.iMAP_IRQx:
+    mov [ds:bx], word ax
+    mov [ds:bx+2], word ds
+    sti
+iret
     
     ;mov bl, irq mask
     ;mov dx, 0 or 1 (pic)
@@ -174,6 +177,7 @@ ret
 %include '../keymap.asm'
 irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
+irq20_ivt equ 0x0080
 
 IRQ_MASKS:
     db 00000001b

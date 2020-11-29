@@ -3,6 +3,9 @@ xor ax, ax
 mov ds, ax
 
 pop ax
+mov [loadProgram], ax
+
+pop ax
 mov [readProgram], ax
 
 pop ax
@@ -42,8 +45,6 @@ call irq.printEnabledIRQ
 ;call irq.printEnabledIRQ
 
 call pdt.map
-
-mov ax, 1
 
 jmp $
 

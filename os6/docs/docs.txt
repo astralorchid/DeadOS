@@ -4,7 +4,7 @@ readProgram:
         1: inc through heads
     bx = sector offset
     dh = head
-    -Loads sector at 0:1000
+    -Loads sector at 0000:1000
 
 pdt.isProgram:
     -Checks if the loaded sector at 0:1000 is a program
@@ -20,7 +20,7 @@ pdt.isProgram:
 +:0x0002 - Program name (string byte)
 +:0x0009 - End program name
 
-
+PROGRAM_NAME_MAXLEN equ 8
 
 notes:
-    -push ds then mov ds, 0 before program IRQ remapping
+    -push ds then mov ds, 0 before program IRQ remapping?

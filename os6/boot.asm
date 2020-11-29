@@ -31,6 +31,8 @@ start:
 
     mov ax, readProgram
     push ax
+    mov ax, loadProgram
+    push ax
     
     jmp KERNEL_START
 
@@ -53,7 +55,12 @@ readProgram:
         ;mov dh, 0x00 ;head
         mov dl, [DRIVE] ;drive
         mov bx, 0x1000;offset dest
+
     int 0x13
+ret
+
+loadProgram:
+
 ret
 
 jmp $

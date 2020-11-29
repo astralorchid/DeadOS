@@ -36,6 +36,7 @@ ret
     .readLoop:
         mov dh, 0x00 ;head
         mov ah, 0; 0 - head0 check, 1 - all other heads
+        
         call [readProgram]
         call .isProgram
 
@@ -43,7 +44,7 @@ ret
         jz .noProgramHead0
 
         call .PDTEntry
-        ;call newLine
+        call newLine
 
         .noProgramHead0:
 
@@ -57,15 +58,15 @@ ret
             
             cmp [ds:bx], byte 1 ;funny sector exploit
             jg .contreadLoop
-
+            add al, byte [KERNEL_SIZE]
             mov byte [ds:bx], al ;save start sector
             mov byte [ds:bx+1], ah ;save head
             
-            ;pusha
-            ;call hprep
-            ;call hprint
-            ;call newLine
-            ;popa
+            pusha
+            call hprep
+            call hprint
+            call newLine
+            popa
 
             call writeProgramName
 
@@ -88,6 +89,7 @@ ret
     .mainReadLoop:
         mov dh, bh ;head
         mov ah, 1; 0 - head0 check, 1 - all other heads
+
         call [readProgram]
         call .isProgram
 
@@ -95,7 +97,7 @@ ret
         jz .noProgramHeads
 
         call .PDTEntry
-        ;call newLine
+        call newLine
 
         .noProgramHeads:
             cmp [PDT_ENTRY], word 0
@@ -112,11 +114,11 @@ ret
             mov byte [ds:bx], al
             mov byte [ds:bx+1], ah ;save head
 
-            ;pusha
-            ;call hprep
-            ;call hprint
-            ;call newLine
-            ;popa
+            pusha
+            call hprep
+            call hprint
+            call newLine
+            popa
 
             call writeProgramName
 
@@ -164,7 +166,7 @@ ret
         .equ_str:
         mov si, msg_hasprogram
         ;call sprint
-       ; call newLine
+        ;call newLine
         mov bx, 1
     ret
 ret
@@ -186,8 +188,8 @@ ret
         inc al
         mov [PDT_ENTRY], al
         mov ax, bx
-        ;call hprep
-        ;call hprint
+        call hprep
+        call hprint
 ret
 
 NoPrograms_Error:
@@ -217,8 +219,8 @@ writeProgramName:
     .endName:
         mov [di], byte 0 ;force null term
         mov si, ds:bx+2
-        ;call sprint
-        ;call newLine
+        call sprint
+        call newLine
     popa
 ret
 
