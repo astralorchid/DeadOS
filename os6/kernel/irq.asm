@@ -91,8 +91,8 @@ ret
 
 .iMAP_IRQx:
     mov [ds:bx], word ax
-    mov [ds:bx+2], word ds
-    sti
+    mov [ds:bx+2], word dx
+
 iret
     
     ;mov bl, irq mask
@@ -151,7 +151,10 @@ iret
     ret
 
     .irq1:
+        push ds
         push ax
+        xor ax, ax
+        mov ds, ax
 
         in al, 01100000b
 
@@ -170,8 +173,9 @@ iret
 
         .inputEnd:
             mov al, 01100001b
-            out PIC0, al
+            out 0x20, al
         pop ax
+        pop ds
     iret
 
 %include '../keymap.asm'

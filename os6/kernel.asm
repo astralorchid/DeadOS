@@ -43,11 +43,34 @@ call irq.printEnabledIRQ
     ;call irq.ENABLE_MASTER_PIC
 ;sti
 ;call irq.printEnabledIRQ
-
 call pdt.map
 
-jmp $
+mov ax, 0x1000
+mov es, ax
 
+mov cl, byte [ds:0x500]
+mov dh, byte [ds:0x501]
+xor bx, bx
+call [loadProgram]
+
+add bx, 32
+
+push ds
+push backfromProgram
+
+mov ax, es
+mov ds, ax
+
+push es
+push bx
+retf
+
+backfromProgram:
+mov ax, 0
+mov ds, ax
+mov si, DRIVE_STR
+call sprint
+jmp $
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
 %include '../kernel/pdt.asm'

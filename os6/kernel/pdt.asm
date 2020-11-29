@@ -54,10 +54,11 @@ ret
             pop ax
             push ax
 
-            mov bx, word [PDT_ENTRY]
+            call convertPDTEntry
             
             cmp [ds:bx], byte 1 ;funny sector exploit
             jg .contreadLoop
+
             add al, byte [KERNEL_SIZE]
             mov byte [ds:bx], al ;save start sector
             mov byte [ds:bx+1], ah ;save head
@@ -105,6 +106,8 @@ ret
 
             pop ax
             push ax
+
+            call convertPDTEntry
 
             cmp [ds:bx], byte 0 ;funny sector exploit
             jnz .contreadLoop2
@@ -222,6 +225,17 @@ writeProgramName:
         call sprint
         call newLine
     popa
+ret
+
+convertPDTEntry:
+push ax
+    mov al, PDT_OFFSET
+    mov bl, [PDT_ENTRY]
+    dec bl
+    mul bl
+    add ax, PDT_START
+    mov bx, ax
+pop ax
 ret
 
 PROGRAM_STR db 'program', 0
