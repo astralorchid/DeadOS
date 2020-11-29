@@ -43,7 +43,7 @@ ret
         jz .noProgramHead0
 
         call .PDTEntry
-        call newLine
+        ;call newLine
 
         .noProgramHead0:
 
@@ -55,15 +55,19 @@ ret
 
             mov bx, word [PDT_ENTRY]
             
-            cmp [ds:bx], byte 0 ;funny sector exploit
-            jnz .contreadLoop
+            cmp [ds:bx], byte 1 ;funny sector exploit
+            jg .contreadLoop
 
             mov byte [ds:bx], al ;save start sector
             mov byte [ds:bx+1], ah ;save head
             
-            call hprep
-            call hprint
-            call newLine
+            ;pusha
+            ;call hprep
+            ;call hprint
+            ;call newLine
+            ;popa
+
+            call writeProgramName
 
         .contreadLoop:
         pop bx
@@ -91,7 +95,7 @@ ret
         jz .noProgramHeads
 
         call .PDTEntry
-        call newLine
+        ;call newLine
 
         .noProgramHeads:
             cmp [PDT_ENTRY], word 0
@@ -104,12 +108,17 @@ ret
             jnz .contreadLoop2
 
             mov bx, word [PDT_ENTRY]
+
             mov byte [ds:bx], al
             mov byte [ds:bx+1], ah ;save head
 
-            call hprep
-            call hprint
-            call newLine
+            ;pusha
+            ;call hprep
+            ;call hprint
+            ;call newLine
+            ;popa
+
+            call writeProgramName
 
         .contreadLoop2:
         pop bx
@@ -147,15 +156,15 @@ ret
         jz .equ_str 
 
         mov si, msg_noprogram
-        call sprint
-        call newLine
+        ;call sprint
+        ;call newLine
         mov bx, 0
         ret
 
         .equ_str:
         mov si, msg_hasprogram
-        call sprint
-        call newLine
+        ;call sprint
+       ; call newLine
         mov bx, 1
     ret
 ret
@@ -177,14 +186,40 @@ ret
         inc al
         mov [PDT_ENTRY], al
         mov ax, bx
-        call hprep
-        call hprint
+        ;call hprep
+        ;call hprint
 ret
 
 NoPrograms_Error:
     mov si, [NoproErrorStr]
     call sprint
     jmp $
+ret
+
+writeProgramName:
+    pusha
+    mov si, PROGRAM_READ_OFFSET+PROGRAM_STR_LEN
+    mov di, ds:bx+2
+    xor cx, cx
+    .writePgrmNameByte:
+        mov al, [si]
+        mov [di], al
+
+        cmp cx, word PROGRAM_NAME_MAXLEN
+        je .endName
+        inc cx
+
+        cmp [si], byte 0
+        je .endName
+        inc si
+        inc di
+        jmp .writePgrmNameByte
+    .endName:
+        mov [di], byte 0 ;force null term
+        mov si, ds:bx+2
+        ;call sprint
+        ;call newLine
+    popa
 ret
 
 PROGRAM_STR db 'program', 0
@@ -198,6 +233,7 @@ PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 1
 PDT_START equ 0x0500
-PDT_OFFSET equ 8
+PDT_OFFSET equ 10
 PDT_ENTRY db 0
 CURRENT_PDT_ENTRY db 0
+PROGRAM_NAME_MAXLEN equ 8

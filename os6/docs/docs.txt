@@ -18,5 +18,9 @@ pdt.isProgram:
 +:0x0000 - Start sector (byte)
 +:0x0001 - Head (byte)
 +:0x0002 - Program name (string byte)
-+:0x000A - End program name
++:0x0009 - End program name
 
+
+
+notes:
+    -push ds then mov ds, 0 before program IRQ remapping

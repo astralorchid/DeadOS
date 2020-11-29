@@ -80,10 +80,17 @@ irq:
 
     ;mov ax, word .irq#
     ;mov bx, word irq # (ivt offset based)
-    .MAP_IRQx:
-        mov [ds:bx], word ax
-        mov [ds:bx+2], word ds
-    ret
+.MAP_IRQx:
+    push ds
+    push ax
+    xor ax, ax
+    mov ds, ax
+    pop ax
+
+    mov [ds:bx], word ax
+    mov [ds:bx+2], word ds
+    pop ds
+ret
     
     ;mov bl, irq mask
     ;mov dx, 0 or 1 (pic)
