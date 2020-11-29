@@ -1,4 +1,5 @@
 [org 0x7e00]
+[bits 16]
 xor ax, ax
 mov ds, ax
 
@@ -55,13 +56,12 @@ call [loadProgram]
 
 add bx, 32
 
-push ds
-push backfromProgram
-
 mov ax, es
 mov ds, ax
 
-push es
+mov word [ds:0x01F0], backfromProgram
+
+push ds
 push bx
 retf
 
