@@ -1,5 +1,5 @@
 [org 0x7e00]
-[bits 16]
+
 xor ax, ax
 mov ds, ax
 
@@ -46,7 +46,26 @@ call irq.printEnabledIRQ
 ;call irq.printEnabledIRQ
 call pdt.map
 call pdt.print
+
+mov bx, 0x1000
+mov es, bx
+mov bx, 0x0500
+mov cl, byte [bx]
+mov dh, byte [bx+1]
+xor bx, bx
+call [loadProgram]
+add bx, 0x0020
+
+mov ax, es
+mov ds, ax
+
+push es
+push bx
+retf
+
+
 jmp $
+
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
 %include '../kernel/pdt.asm'

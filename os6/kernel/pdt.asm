@@ -65,6 +65,7 @@ ret
             jg .contreadLoop
 
             add al, byte [KERNEL_SIZE]
+            inc al ;fuck you
             mov byte [bx], al ;save start sector
             mov byte [bx+1], ah ;save head
 
@@ -113,6 +114,7 @@ ret
 
             mov bx, word [PDT_ENTRY]
 
+            inc al ;fuck you
             mov byte [bx], al
             mov byte [bx+1], ah ;save head
 

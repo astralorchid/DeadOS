@@ -85,14 +85,20 @@ irq:
     ;mov ax, word .irq#
     ;mov bx, word irq # (ivt offset based)
 .MAP_IRQx:
-    mov [ds:bx], word ax
-    mov [ds:bx+2], word ds
+    mov [bx], word ax
+    mov [bx+2], word ds
 ret
 
 .iMAP_IRQx:
-    mov [ds:bx], word ax
-    mov [ds:bx+2], word dx
+    push ds
+    push ax
+    xor ax, ax
+    mov ds, ax
+    pop ax
 
+    mov [bx], word ax
+    mov [bx+2], word dx
+    pop ds
 iret
     
     ;mov bl, irq mask
