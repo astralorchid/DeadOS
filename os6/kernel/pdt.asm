@@ -14,8 +14,7 @@ pdt:
     mov di, bx
     mov cx, 0x100
     rep stosb
-    ;mov ax, 1; pdt offset
-    ;push ax
+
     cmp [IS_BOCHS], byte 1
     je .BochsDriver
 
@@ -51,7 +50,6 @@ ret
         jz .noProgramHead0
 
         call .PDTEntry
-        call newLine
 
         .noProgramHead0:
 
@@ -69,12 +67,6 @@ ret
             add al, byte [KERNEL_SIZE]
             mov byte [bx], al ;save start sector
             mov byte [bx+1], ah ;save head
-            
-            pusha
-            call hprep
-            call hprint
-            call newLine
-            popa
 
             call writeProgramName
 
@@ -123,12 +115,6 @@ ret
 
             mov byte [bx], al
             mov byte [bx+1], ah ;save head
-
-            pusha
-            call hprep
-            call hprint
-            call newLine
-            popa
 
             call writeProgramName
 
@@ -197,9 +183,6 @@ ret
         mov al, [PDT_ENTRY]
         inc al
         mov [PDT_ENTRY], al
-        mov ax, bx
-        call hprep
-        call hprint
 ret
 
 
@@ -226,7 +209,7 @@ pusha
     pop bx
     inc bx
     jmp .pdtprintLoop
-    
+
     .nopdtprintLoop:
     mov si, EMPTY_STR
     call sprint
@@ -287,10 +270,7 @@ writeProgramName:
         push bx
         inc bx
         inc bx
-        mov si, bx
         pop bx
-        call sprint
-        call newLine
     popa
 ret
 
@@ -314,7 +294,7 @@ SectorOffset db 1
 MAX_SECTORS equ 63
 PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
-IS_BOCHS db 1
+IS_BOCHS db 0
 PDT_START equ 0x0500
 PDT_OFFSET equ 0x0B
 PDT_ENTRY db 0
