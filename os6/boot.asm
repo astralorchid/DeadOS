@@ -63,9 +63,9 @@ loadProgram:
 mov ax, 0x1000
 mov es, ax
     mov ah, 0x02 ;read
-    mov al, 0x02 ;#sectors
+    mov al, 0x02 ;#sectors (Un-hardcode eventually)
     mov ch, 0 ;cyl
-    ;mov cl, 0x02 ;start from sector
+    ;mov cl, 0x0B ;start from sector
     ;mov dh, 0x00 ;head
     mov dl, [DRIVE] ;drive
     int 0x13

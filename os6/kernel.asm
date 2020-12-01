@@ -45,33 +45,10 @@ call irq.printEnabledIRQ
 ;sti
 ;call irq.printEnabledIRQ
 call pdt.map
-
-mov ax, 0x1000
-mov es, ax
-
-mov cl, byte [ds:0x500]
-mov dh, byte [ds:0x501]
-xor bx, bx
-call [loadProgram]
-
-add bx, 32
-
-mov ax, es
-mov ds, ax
-
-mov word [ds:0x01F0], backfromProgram
-
-push ds
-push bx
-retf
-
-backfromProgram:
-mov ax, 0
-mov ds, ax
-mov si, DRIVE_STR
-call sprint
+call pdt.print
 jmp $
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
 %include '../kernel/pdt.asm'
+
 times 5120-($-$$) db 0

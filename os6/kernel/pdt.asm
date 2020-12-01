@@ -2,11 +2,18 @@
 ;pdt starts at 0x0000:0x0500
 
 pdt:
+
+
 .map:
     push es
     mov ax, 0x0000
     mov es, ax
 
+    mov al, 0x00
+    mov bx, word PDT_START
+    mov di, bx
+    mov cx, 0x100
+    rep stosb
     ;mov ax, 1; pdt offset
     ;push ax
     cmp [IS_BOCHS], byte 1
@@ -56,12 +63,12 @@ ret
 
             call convertPDTEntry
             
-            cmp [ds:bx], byte 1 ;funny sector exploit
+            cmp [bx], byte 1 ;funny sector exploit
             jg .contreadLoop
 
             add al, byte [KERNEL_SIZE]
-            mov byte [ds:bx], al ;save start sector
-            mov byte [ds:bx+1], ah ;save head
+            mov byte [bx], al ;save start sector
+            mov byte [bx+1], ah ;save head
             
             pusha
             call hprep
@@ -109,13 +116,13 @@ ret
 
             call convertPDTEntry
 
-            cmp [ds:bx], byte 0 ;funny sector exploit
+            cmp [bx], byte 0 ;funny sector exploit
             jnz .contreadLoop2
 
             mov bx, word [PDT_ENTRY]
 
-            mov byte [ds:bx], al
-            mov byte [ds:bx+1], ah ;save head
+            mov byte [bx], al
+            mov byte [bx+1], ah ;save head
 
             pusha
             call hprep
@@ -195,6 +202,55 @@ ret
         call hprint
 ret
 
+
+.print:
+pusha
+    mov ax, word PDT_OFFSET
+    mov bx, word PDT_START
+    .printProgramName:
+   push bx
+   push ax
+    .pdtprintLoop:
+    push bx
+    inc bx
+    inc bx
+
+    cmp [bx], byte 0
+    jz .nopdtprintLoop
+
+    mov ah, 0x0e
+    mov al, byte [bx]
+    int 0x10
+    inc bx
+
+    pop bx
+    inc bx
+    jmp .pdtprintLoop
+    .nopdtprintLoop:
+    mov si, EMPTY_STR
+    call sprint
+    pop bx
+    sub bx, 8 ;dirty
+    mov al, [bx]
+    mov ah, [bx+1]
+
+    pusha
+    call hprep
+    call hprint
+    popa
+
+    call newLine
+
+    pop ax
+    pop bx
+    add bx, ax
+    cmp [bx], byte 0
+    jz .endprint
+    jmp .printProgramName
+    .endprint:
+popa
+ret
+
 NoPrograms_Error:
     mov si, [NoproErrorStr]
     call sprint
@@ -204,7 +260,13 @@ ret
 writeProgramName:
     pusha
     mov si, PROGRAM_READ_OFFSET+PROGRAM_STR_LEN
-    mov di, ds:bx+2
+
+    push bx
+    inc bx
+    inc bx
+    mov di, bx
+    pop bx
+
     xor cx, cx
     .writePgrmNameByte:
         mov al, [si]
@@ -221,7 +283,11 @@ writeProgramName:
         jmp .writePgrmNameByte
     .endName:
         mov [di], byte 0 ;force null term
-        mov si, ds:bx+2
+        push bx
+        inc bx
+        inc bx
+        mov si, bx
+        pop bx
         call sprint
         call newLine
     popa
@@ -249,7 +315,8 @@ PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 1
 PDT_START equ 0x0500
-PDT_OFFSET equ 10
+PDT_OFFSET equ 0x0B
 PDT_ENTRY db 0
 CURRENT_PDT_ENTRY db 0
 PROGRAM_NAME_MAXLEN equ 8
+EMPTY_STR db '   ', 0

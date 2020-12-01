@@ -115,6 +115,7 @@ ret
 ;boot data
 DRIVE db 0
 DRIVE_STR db 'BOOT DRIVE: ', 0
+RFT_STR db 'Returned from terminal', 0
 KERNEL_SIZE_STR db 'KERNEL SECTORS: ', 0
 ;hprint data
 hstring db 0
