@@ -226,6 +226,7 @@ pusha
     pop bx
     inc bx
     jmp .pdtprintLoop
+    
     .nopdtprintLoop:
     mov si, EMPTY_STR
     call sprint
