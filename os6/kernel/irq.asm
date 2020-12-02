@@ -173,7 +173,7 @@ iret
 
     add ax, 0x0F
     
-    mov bx ,ax
+    mov bx, ax
     cmp [bx], byte 1
     je .isCurrentProgram
     pop ax
@@ -182,13 +182,12 @@ iret
 
     .isCurrentProgram:
     pop ax
-    inc ax
-    inc ax
-    mov si, ax
-    call sprint
-    ;THE SCANCODE IS ON THE STACK STILL
 
-    
+
+
+    ;THE SCANCODE IS ON THE STACK STILL
+    pop ax
+
     ;je .carriage
     ;call SCANCODE_TO_ASCII
     ;call charInt
