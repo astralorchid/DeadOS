@@ -183,10 +183,32 @@ iret
     .isCurrentProgram:
     pop ax
 
+    add ax, 0x0B
+
+    mov cx, .returnToIRQ1
+    push cx
+    mov cx, ds
+    push cx
+
+    mov bx, ax
+    mov bx, word [bx]; program segment
+    mov dx, bx
+    push bx
+    inc ax
+    inc ax
+    mov bx, ax
+    mov bx, word [bx] ;program input handler offset
+    push bx
+    mov ds, dx
+    retf
+
+    .returnToIRQ1:
+    xor ax, ax
+    mov ds, ax
 
 
     ;THE SCANCODE IS ON THE STACK STILL
-    pop ax
+
 
     ;je .carriage
     ;call SCANCODE_TO_ASCII

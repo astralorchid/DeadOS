@@ -35,9 +35,27 @@ mov ax, [enableInputOff]
 push ax
 retf
 
+input:
+    pop ax
+    mov bx, ax
+
+    pop ax
+    mov cx, ax
+
+    pop ax;scancode
+
+    pusha
+    call hprep
+    call hprint
+    popa
+    
+    push bx
+    push cx
+retf
+
 msg db 'WELCOME TO DEADOS', 0
 enableInputOff dw 0
 enableInputSeg dw 0
 %include '../kernel/kernel_data.asm'
-input:
+
 times (512*2)-($-$$) db 0
