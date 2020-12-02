@@ -50,7 +50,7 @@ irq:
         mov bx, word irq1_ivt
         call irq.MAP_IRQx
 
-        mov ax, word .iMAP_IRQx
+        mov ax, word .programList
         mov bx, word irq20_ivt
         call irq.MAP_IRQx
 
@@ -89,18 +89,13 @@ irq:
     mov [bx+2], word ds
 ret
 
-.iMAP_IRQx:
-    push ds
-    push ax
-    xor ax, ax
-    mov ds, ax
-    pop ax
-
-    mov [bx], word ax
-    mov [bx+2], word dx
-    pop ds
+.programList:
+push ds
+mov ax, 0
+mov ds, ax
+    call pdt.print
+pop ds
 iret
-    
     ;mov bl, irq mask
     ;mov dx, 0 or 1 (pic)
     .ENABLE_IRQx:
@@ -156,33 +151,37 @@ iret
         mov [IRQ_FLAGS], al
     ret
 
-    .irq1:
-        push ds
-        push ax
-        xor ax, ax
-        mov ds, ax
+.irq1:
+    push ds
+    push ax
+    xor ax, ax
+    mov ds, ax
 
-        in al, 01100000b
+    in al, 01100000b
 
-        test al, 10000000b
-        jnz .inputEnd
-        
-        push ax
-        call SCANCODE_TO_ASCII
-        call charInt
-        pop ax
-        mov ah, 0
+    test al, 10000000b
+    jnz .inputEnd
+    
 
-        call hprep
-        call hprint
+    cmp al, byte 0x1C
+    je .carriage
+    call SCANCODE_TO_ASCII
+
+    call charInt
+    jmp .endScancode
+
+    .carriage:
         call newLine
+    .endScancode:
 
-        .inputEnd:
-            mov al, 01100001b
-            out 0x20, al
-        pop ax
-        pop ds
-    iret
+    .inputEnd:
+        mov al, 01100001b
+        out 0x20, al
+    pop ax
+    pop ds
+iret
+
+
 
 %include '../keymap.asm'
 irq0_ivt equ 0x0020
@@ -201,5 +200,6 @@ IRQ_FLAGS_STR db 'IRQ FLAG WORD STATUS ', 0
 ENABLE_IRQ_STR db 'ENABLE IRQ MASK ', 0
 DISABLE_IRQ_STR db 'DISABLE IRQ MASK ', 0
 MAP_KERNEL_STR db 'MAPPED KERNEL IVT ', 0
+charCount dw 0
 PIC0 equ 0x20 ;also 
 PIC1 equ 0xa0 ;command ports

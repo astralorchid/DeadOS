@@ -61,7 +61,7 @@ ret
 
 loadProgram:
     mov ah, 0x02 ;read
-    mov al, 0x01 ;#sectors (Un-hardcode eventually)
+    mov al, 0x02 ;#sectors (Un-hardcode eventually)
     mov ch, 0 ;cyl
     ;mov cl, 0x0C ;start from sector
     ;mov dh, 0x00 ;head

@@ -146,8 +146,7 @@ ret
 ret
 
     .isProgram:
-        mov cx, PROGRAM_STR_LEN  
-        ;cld           
+        mov cx, PROGRAM_STR_LEN          
         mov si, PROGRAM_READ_OFFSET
         mov di, PROGRAM_STR
         rep cmpsb 
@@ -298,7 +297,7 @@ PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 0
 PDT_START equ 0x0500
-PDT_OFFSET equ 0x0B
+PDT_OFFSET equ 0x0C
 PDT_ENTRY db 0
 CURRENT_PDT_ENTRY db 0
 PROGRAM_NAME_MAXLEN equ 8

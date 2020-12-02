@@ -19,6 +19,7 @@ pdt.isProgram:
 +:0x0001 - Head (byte)
 +:0x0002 - Program name (string byte)
 +:0x000A - Program name null term
++:0x000B - Is Current Program
 
 PROGRAM_NAME_MAXLEN equ 8
 

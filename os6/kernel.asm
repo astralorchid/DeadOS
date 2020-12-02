@@ -56,6 +56,10 @@ xor bx, bx
 call [loadProgram]
 add bx, 0x0020
 
+mov ax, mapProgramInput
+push ax
+push ds
+
 mov ax, es
 mov ds, ax
 
@@ -63,8 +67,58 @@ push es
 push bx
 retf
 
+mapProgramInput:
+xor ax, ax
+mov ds, ax
+pop ax
+mov [inputName], ax 
+pop ax ;input table offset
+mov [inputOff], ax
+pop ax
+mov [inputSeg], ax
+pop ax
+mov [mainOff], ax
 
-jmp $
+.getProgramName:
+    push ds
+    push es
+    mov ax, [inputName]
+    push ax
+        mov ax, [inputSeg]
+        mov ds, ax
+        xor ax, ax
+        mov es, ax
+
+        pop ax
+        mov si, ax
+        mov di, programName
+        mov cx, 8
+        rep movsb
+    pop es
+    pop ds
+
+mov si, respone_msg
+call sprint
+mov si, programName
+call sprint
+call newLine
+
+mov ax, [inputSeg]
+push ax
+mov ax, [mainOff]
+push ax
+
+mov ax, [inputSeg]
+mov ds, ax
+retf
+
+respone_msg db 'INPUT MAP REQUEST FROM ', 0
+inputSeg dw 0
+mainOff dw 0
+inputOff dw 0
+inputName dw 0
+programName:
+times 9 db 0
 
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
