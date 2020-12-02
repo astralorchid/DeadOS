@@ -163,15 +163,40 @@ iret
     jnz .inputEnd
     
 
-    cmp al, byte 0x1C
-    je .carriage
-    call SCANCODE_TO_ASCII
+    ;cmp al, byte 0x1C
+    xor ah, ah
+    push ax
 
-    call charInt
+    mov ax, PDT_START
+    .findCurrentProgram:
+    push ax; save start
+
+    add ax, 0x0F
+    
+    mov bx ,ax
+    cmp [bx], byte 1
+    je .isCurrentProgram
+    pop ax
+    add ax, PDT_OFFSET
+    jmp .findCurrentProgram
+
+    .isCurrentProgram:
+    pop ax
+    inc ax
+    inc ax
+    mov si, ax
+    call sprint
+    ;THE SCANCODE IS ON THE STACK STILL
+
+    
+    ;je .carriage
+    ;call SCANCODE_TO_ASCII
+    ;call charInt
+
     jmp .endScancode
 
-    .carriage:
-        call newLine
+    ;.carriage:
+        ;call newLine
     .endScancode:
 
     .inputEnd:

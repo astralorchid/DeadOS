@@ -37,17 +37,10 @@ call irq.driver
 
 call irq.printEnabledIRQ
 
-;cli
-    ;mov bl, [IRQ_MASKS+1]
-    ;mov dx, 0
-    ;call irq.DISABLE_IRQx
-    ;call irq.ENABLE_MASTER_PIC
-;sti
-;call irq.printEnabledIRQ
 call pdt.map
 call pdt.print
 
-mov bx, 0x1000
+mov bx, 0x1000 ;remake program allocator eventually
 mov es, bx
 mov bx, 0x0500
 mov cl, byte [bx]
@@ -67,49 +60,85 @@ push es
 push bx
 retf
 
-mapProgramInput:
-xor ax, ax
-mov ds, ax
-pop ax
-mov [inputName], ax 
-pop ax ;input table offset
-mov [inputOff], ax
-pop ax
-mov [inputSeg], ax
-pop ax
-mov [mainOff], ax
+mapProgramInput: ;intial program kernel communication
+    xor ax, ax
+    mov ds, ax
 
-.getProgramName:
-    push ds
-    push es
-    mov ax, [inputName]
-    push ax
-        mov ax, [inputSeg]
-        mov ds, ax
-        xor ax, ax
-        mov es, ax
+    pop ax
+    mov [inputName], ax 
+    pop ax ;input table offset
+    mov [inputOff], ax
+    pop ax
+    mov [inputSeg], ax
+    pop ax
+    mov [mainOff], ax
 
-        pop ax
+    .getProgramName:
+        push ds
+        push es
+        mov ax, [inputName]
+        push ax
+            mov ax, [inputSeg]
+            mov ds, ax
+            xor ax, ax
+            mov es, ax
+
+            pop ax
+            mov si, ax
+            mov di, programName
+            mov cx, 8
+            rep movsb
+        pop es
+        pop ds
+
+    mov si, respone_msg
+    call sprint
+    call newLine
+
+    ;set pdt running segment & current program
+    push es ;to use si and di properly
+    xor ax, ax
+    mov es, ax
+
+        mov ax, PDT_START
+        .findPDTEntry:
+        push ax ;save start
+        inc ax
+        inc ax
+
         mov si, ax
         mov di, programName
         mov cx, 8
-        rep movsb
+        rep cmpsb
+
+        cmp cx, 0
+        jz .foundEntry
+        pop ax
+        add ax, PDT_OFFSET
+        jmp .findPDTEntry
+        .foundEntry:
+        pop ax
+        mov bx, ax
+
+        mov ax, [inputSeg]
+        add bx, 11
+        mov [bx], ax ;write running segment into pdt entry
+        add bx, 2
+        mov ax, [inputOff]
+        mov [bx], ax ;write input handler offset into pdt entry
+        add bx, 2
+        mov [bx], byte 1 ;set as current program
+        mov ax, word [bx]
+
     pop es
-    pop ds
 
-mov si, respone_msg
-call sprint
-mov si, programName
-call sprint
-call newLine
+    mov ax, [inputSeg]
+    push ax
+    mov ax, [mainOff]
+    push ax
 
-mov ax, [inputSeg]
-push ax
-mov ax, [mainOff]
-push ax
-
-mov ax, [inputSeg]
-mov ds, ax
+    mov ax, [inputSeg]
+    mov ds, ax
 retf
 
 respone_msg db 'INPUT MAP REQUEST FROM ', 0

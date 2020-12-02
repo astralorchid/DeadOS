@@ -9,10 +9,11 @@ pdt:
     mov ax, 0x0000
     mov es, ax
 
+    .clearTheWay: ;never assume memory is 0x00
     mov al, 0x00
     mov bx, word PDT_START
     mov di, bx
-    mov cx, 0x100
+    mov cx, 0x200
     rep stosb
 
     cmp [IS_BOCHS], byte 1
@@ -297,7 +298,7 @@ PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 0
 PDT_START equ 0x0500
-PDT_OFFSET equ 0x0C
+PDT_OFFSET equ 0x10
 PDT_ENTRY db 0
 CURRENT_PDT_ENTRY db 0
 PROGRAM_NAME_MAXLEN equ 8
