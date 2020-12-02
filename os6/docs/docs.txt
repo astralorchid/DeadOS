@@ -28,7 +28,6 @@ PROGRAM_NAME_MAXLEN equ 8
 terminal - int 0x20: get program list
 
 to-do list:
-    -make keyboard driver send input to current program
     -int 0x21: scancode to ascii converter
     -redesign program allocator
     -un-hardcode # sectors in loadProgram
