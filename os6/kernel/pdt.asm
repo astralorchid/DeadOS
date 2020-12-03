@@ -9,7 +9,7 @@ pdt:
     mov ax, 0x0000
     mov es, ax
 
-    .clearTheWay: ;never assume memory is 0x00
+.clearTheWay: ;never assume memory is 0x00
     mov al, 0x00
     mov bx, word PDT_START
     mov di, bx
@@ -235,6 +235,21 @@ pusha
     jmp .printProgramName
     .endprint:
 popa
+ret
+
+.clearAllCurrent:
+push bx
+    mov bx, PDT_START
+
+    cmp [bx], byte 0
+    jz .endCurrent
+    push bx
+    add bx, 0x0F
+    mov [bx], byte 0
+    pop bx
+    add bx, PDT_OFFSET
+    .endCurrent:
+pop bx
 ret
 
 NoPrograms_Error:

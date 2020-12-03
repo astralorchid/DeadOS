@@ -125,7 +125,7 @@ mapProgramInput: ;intial program kernel communication
         add bx, 2
         
         ;clear all offset 0x000F of pdt entries here
-
+        call pdt.clearAllCurrent
         mov [bx], byte 1 ;set as current program
         mov ax, word [bx]
 

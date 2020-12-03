@@ -92,12 +92,14 @@ getCursorPos:
 ret
 
 newLine:
+    pusha
     call getCursorPos
     mov ah, 0x02
     mov bh, 0x00
     inc dh
     mov dl, 0
     int 0x10
+    popa
 ret
 
 getInitVideoMode:

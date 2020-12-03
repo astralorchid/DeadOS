@@ -54,7 +54,7 @@ irq:
         mov bx, word irq20_ivt
         call irq.MAP_IRQx
 
-        mov ax, word .ScancodeToASCII
+        mov ax, word keyboard.ScancodeToASCII
         mov bx, word irq21_ivt
         call irq.MAP_IRQx
 
@@ -165,9 +165,18 @@ iret
 
     test al, 10000000b
     jnz .inputEnd
-    
+    mov [INPUT_FLAG], byte 1
 
-    ;cmp al, byte 0x1C
+    cmp al, byte 0x2A ;shift
+    jne .isReturn
+    mov [SHIFT_FLAG], byte 1
+    jmp .contirq1
+    .isReturn:
+        cmp al, byte 0x1C ;return
+        jne .contirq1
+        mov [RETURN_FLAG], byte 1
+        jmp .contirq1
+    .contirq1:
     xor ah, ah
     push ax
 
@@ -189,6 +198,12 @@ iret
 
     add ax, 0x0B
 
+    mov cl, [INPUT_FLAG]
+    push cx
+    mov cl, [SHIFT_FLAG]
+    mov ch, [RETURN_FLAG]
+    push cx
+
     mov cx, .returnToIRQ1
     push cx
     mov cx, ds
@@ -209,42 +224,26 @@ iret
     .returnToIRQ1:
     xor ax, ax
     mov ds, ax
-
-
-    ;THE SCANCODE IS ON THE STACK STILL
-
-
-    ;je .carriage
-    ;call SCANCODE_TO_ASCII
-    ;call charInt
-
-    jmp .endScancode
-
-    ;.carriage:
-        ;call newLine
-    .endScancode:
+    jmp .irq1end
+    ;scancode should get popped off in program
 
     .inputEnd:
-        mov al, 01100001b
-        out 0x20, al
+    mov [INPUT_FLAG], byte 0
+
+    cmp al, byte 0xAA ;shift
+    jne .isEndReturn
+    mov [SHIFT_FLAG], byte 0
+    jmp .contirq1
+    .isEndReturn:
+        cmp al, byte 0x9C ;return
+        jne .contirq1
+        mov [RETURN_FLAG], byte 0
+        jmp .contirq1
+
+    .irq1end:
+    mov al, 01100001b
+    out 0x20, al
     pop ax
-    pop ds
-iret
-
-.ScancodeToASCII:
-    push ds
-    push ax
-    xor ax, ax
-    mov ds, ax
-    pop ax
-
-
-    push bx
-    mov bh, 0
-    mov bl, al
-    mov al, [KEYMAP+bx]
-    pop bx
-
     pop ds
 iret
 
@@ -256,7 +255,6 @@ irq21_ivt equ 0x0084
 IRQ_MASKS:
     db 00000001b
     db 00000010b
-
 IRQ_FLAGS:
     db 00000011b
 IRQ_SLAVE_FLAGS:
