@@ -43,11 +43,8 @@ input:
     mov cx, ax
 
     pop ax;scancode
-
-    pusha
-    call hprep
-    call hprint
-    popa
+    int 0x21
+    call charInt
     
     push bx
     push cx

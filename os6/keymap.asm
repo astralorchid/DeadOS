@@ -1,10 +1,6 @@
 ;scancode in al
 SCANCODE_TO_ASCII:
-    push bx
-    mov bh, 0
-    mov bl, al
-    mov al, [KEYMAP+bx]
-    pop bx
+
 ret
 
 KEYMAP:

@@ -54,6 +54,10 @@ irq:
         mov bx, word irq20_ivt
         call irq.MAP_IRQx
 
+        mov ax, word .ScancodeToASCII
+        mov bx, word irq21_ivt
+        call irq.MAP_IRQx
+
         mov si, MAP_KERNEL_STR
         call sprint
         call newLine
@@ -227,13 +231,28 @@ iret
     pop ds
 iret
 
+.ScancodeToASCII:
+    push ds
+    push ax
+    xor ax, ax
+    mov ds, ax
+    pop ax
 
+
+    push bx
+    mov bh, 0
+    mov bl, al
+    mov al, [KEYMAP+bx]
+    pop bx
+
+    pop ds
+iret
 
 %include '../keymap.asm'
 irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
 irq20_ivt equ 0x0080
-
+irq21_ivt equ 0x0084
 IRQ_MASKS:
     db 00000001b
     db 00000010b

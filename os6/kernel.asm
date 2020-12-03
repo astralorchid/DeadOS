@@ -91,10 +91,6 @@ mapProgramInput: ;intial program kernel communication
         pop es
         pop ds
 
-    mov si, respone_msg
-    call sprint
-    call newLine
-
     ;set pdt running segment & current program
     push es ;to use si and di properly
     xor ax, ax
@@ -127,6 +123,9 @@ mapProgramInput: ;intial program kernel communication
         mov ax, [inputOff]
         mov [bx], ax ;write input handler offset into pdt entry
         add bx, 2
+        
+        ;clear all offset 0x000F of pdt entries here
+
         mov [bx], byte 1 ;set as current program
         mov ax, word [bx]
 
