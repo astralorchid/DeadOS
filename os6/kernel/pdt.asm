@@ -70,6 +70,7 @@ ret
             mov byte [bx], al ;save start sector
             mov byte [bx+1], ah ;save head
 
+            call .numProgramSectors
             call writeProgramName
 
         .contreadLoop:
@@ -114,11 +115,11 @@ ret
             jnz .contreadLoop2
 
             mov bx, word [PDT_ENTRY]
-
             inc al ;fuck you
             mov byte [bx], al
             mov byte [bx+1], ah ;save head
 
+            call .numProgramSectors
             call writeProgramName
 
         .contreadLoop2:
@@ -163,6 +164,18 @@ ret
     ret
 ret
 
+.numProgramSectors:
+    push ax
+    push bx
+    add bx, 0x10 ;pdt entry offset
+    mov di, bx
+    pop bx
+    mov si, 0x1011 ;offset of #sectors in program
+    mov al, [si]
+    mov [di], al
+    pop ax
+ret
+
 .PDTEntry:
     mov ax, PDT_OFFSET
     mov bx, PDT_START
@@ -180,7 +193,6 @@ ret
         inc al
         mov [PDT_ENTRY], al
 ret
-
 
 .print:
 pusha
@@ -211,6 +223,8 @@ pusha
     call sprint
     pop bx
     sub bx, 8 ;dirty
+
+    push bx
     mov al, [bx]
     mov ah, [bx+1]
 
@@ -218,6 +232,48 @@ pusha
     call hprep
     call hprint
     popa
+
+    mov al, byte ' '
+    call charInt
+
+    pop bx
+    push bx
+    mov ax, word [bx+0x0B]
+
+    pusha
+    call hprep
+    call hprint
+    popa
+
+    mov al, byte ' '
+    call charInt
+
+    pop bx
+    push bx
+    mov ax, word [bx+0x0D]
+
+    pusha
+    call hprep
+    call hprint
+    popa
+
+    mov al, byte ' '
+    call charInt
+
+    pop bx
+    push bx
+    mov ah, byte [bx+0x0F]
+    mov al, byte [bx+0x10]
+
+    pusha
+    call hprep
+    call hprint
+    popa
+
+    mov al, byte ' '
+    call charInt
+    
+    pop bx
 
     call newLine
 

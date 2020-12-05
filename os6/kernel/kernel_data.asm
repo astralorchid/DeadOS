@@ -65,8 +65,8 @@ hprint:
         rol al, 4
         jmp hprint
     .endh2:
-        mov si, HEX_DEF
-        call sprint
+        ;mov si, HEX_DEF
+        ;call sprint
         mov bx, [hcounter]
         .getStack:
         cmp bx, 0

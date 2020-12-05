@@ -1,6 +1,6 @@
 isPROGRAM db 'program', 0
 prgmNAME db 'TERMINAL', 0
-prgmSec db 0x02, 0
+prgmSec db 0x05, 0
 times 31-($-prgmSec) db 0
 
 jmp setInput
