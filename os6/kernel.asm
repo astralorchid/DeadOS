@@ -82,8 +82,8 @@ mapProgramInput: ;intial program kernel communication
             mov ds, ax
             xor ax, ax
             mov es, ax
-
-            pop ax
+        pop ax
+        
             mov si, ax
             mov di, programName
             mov cx, 8

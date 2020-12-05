@@ -55,16 +55,15 @@ readProgram:
         ;mov dh, 0x00 ;head
         mov dl, [DRIVE] ;drive
         mov bx, 0x1000;offset dest
-
     int 0x13
 ret
 
 loadProgram:
     mov ah, 0x02 ;read
-    mov al, 0x02 ;#sectors (Un-hardcode eventually)
+    mov al, 0x02 ;#sectors (Un-hardcode)
     mov ch, 0 ;cyl
-    ;mov cl, 0x0C ;start from sector
-    ;mov dh, 0x00 ;head
+    ;mov cl start from sector
+    ;mov dh head
     mov dl, [DRIVE] ;drive
     int 0x13
 ret

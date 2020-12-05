@@ -14,7 +14,6 @@ pdt.isProgram:
 
 
 0x0000:0x0500 - Program Descriptor Table:
-
 +:0x0000 - Start sector (byte)
 +:0x0001 - Head (byte)
 +:0x0002 - Program name (string byte)
@@ -22,14 +21,24 @@ pdt.isProgram:
 +:0x000B - Running segment (word)
 +:0x000D - Program keyboard input handler offset (word)
 +:0x000F - Current program (0/1 = false/true)
++:0x0010 - # sectors
 
-program int:
+Program load procedure @ offset 0x0020
+
+Program header:
++:0x0000: program
++:0x0007: null
++:0x0008: program name
++:0x0010: null
++:0x0011: # sectors
++:0x0012: null
+
+Program interrupts:
 0x20: get program list
 0x21: scancode to ascii converter
 
 to-do list:
     -un-hardcode # sectors/heads in loadProgram
-    
     -redesign program allocator
     -kernel setting to specify emulator or hardware
-    -program shift button/more keyboard driver
+    -expand int 0x20

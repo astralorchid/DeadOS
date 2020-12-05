@@ -229,7 +229,6 @@ iret
 
     .inputEnd:
     mov [INPUT_FLAG], byte 0
-
     cmp al, byte 0xAA ;shift
     jne .isEndReturn
     mov [SHIFT_FLAG], byte 0
@@ -247,7 +246,7 @@ iret
     pop ds
 iret
 
-%include '../keymap.asm'
+%include '../driver/keyboard.asm'
 irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
 irq20_ivt equ 0x0080

@@ -1,9 +1,12 @@
 isPROGRAM db 'program', 0
 prgmNAME db 'TERMINAL', 0
-times 32-($-$$) db 0
+prgmSec db 0x02, 0
+times 31-($-prgmSec) db 0
+
 jmp setInput
 
 main:
+call setInitVideoMode
 int 0x20
 mov al, byte '>'
 mov bl, 0x0C
@@ -17,7 +20,6 @@ pop ax
 mov [enableInputOff], ax
 
 call getInitVideoMode
-call setInitVideoMode
 
 mov si, msg
 call sprint

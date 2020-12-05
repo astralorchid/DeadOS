@@ -155,16 +155,10 @@ ret
         cmp cx, 0
         jz .equ_str 
 
-        mov si, msg_noprogram
-        ;call sprint
-        ;call newLine
         mov bx, 0
         ret
 
         .equ_str:
-        mov si, msg_hasprogram
-        ;call sprint
-        ;call newLine
         mov bx, 1
     ret
 ret
@@ -313,7 +307,7 @@ PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
 IS_BOCHS db 1
 PDT_START equ 0x0500
-PDT_OFFSET equ 0x10
+PDT_OFFSET equ 0x11
 PDT_ENTRY db 0
 CURRENT_PDT_ENTRY db 0
 PROGRAM_NAME_MAXLEN equ 8
