@@ -39,7 +39,7 @@ call irq.printEnabledIRQ
 
 call pdt.map
 call pdt.print
-
+;start terminal using program loading procedures
     call pmalloc
     ;error handler here
     mov es, bx
@@ -48,6 +48,7 @@ call pdt.print
     ;error handler here
     mov cl, byte [bx]
     mov dh, byte [bx+1]
+    mov al, byte [bx+0x10]
     xor bx, bx
     call [loadProgram]
     add bx, 0x0020

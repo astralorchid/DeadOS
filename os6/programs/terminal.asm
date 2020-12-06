@@ -1,7 +1,8 @@
 isPROGRAM db 'program', 0
 prgmNAME db 'TERMINAL', 0
-prgmSec db 0x05, 0
-times 31-($-prgmSec) db 0
+MAX_SECTORS equ 0x2
+prgmSec db MAX_SECTORS, 0
+times 32-(prgmSec-$$) db 0
 
 jmp setInput
 
@@ -139,4 +140,4 @@ InputState db 0
 InputLen dw 0
 %include '../kernel/kernel_data.asm'
 command:
-times (512*2)-($-$$) db 0
+times (512*MAX_SECTORS)-($-$$) db 0

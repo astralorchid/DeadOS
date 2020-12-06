@@ -21,7 +21,7 @@ pdt:
 
     .RigDriver:
 
-        mov [HEAD0_SECTORS], byte 6
+        mov [HEAD0_SECTORS], byte 63
         call .readHead0
         jmp .endDriver
 
@@ -118,13 +118,14 @@ ret
             inc al ;fuck you
             mov byte [bx], al
             mov byte [bx+1], ah ;save head
+        
 
             call .numProgramSectors
             call writeProgramName
 
         .contreadLoop2:
         pop bx
-        cmp bl, 4 ;#sectors to read
+        cmp bl, 15 ;#sectors to read
         jl .incSector
         je .incHead
 
@@ -134,7 +135,7 @@ ret
         jmp .mainReadLoop
 
     .incHead:
-        cmp bh, 1; amount of heads to read
+        cmp bh, 2; amount of heads to read
         jl .moveHead
         je .endHead
 

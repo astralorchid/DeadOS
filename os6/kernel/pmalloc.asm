@@ -47,8 +47,6 @@ push es
     .atMemoryLimit:
     mov bx, 0
     .endpmalloc:
-    cmp bx, 0
-    jz pmallocFull
 pop es
 pop ds
 ret
