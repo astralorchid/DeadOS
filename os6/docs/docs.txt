@@ -39,7 +39,4 @@ Program interrupts:
 0x22: load program
 
 to-do list:
-    -un-hardcode # sectors/heads in loadProgram
     -redesign program allocator
-    -kernel setting to specify emulator or hardware
-    -expand int 0x20

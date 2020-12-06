@@ -43,7 +43,6 @@ call pdt.print
     call pmalloc
     ;error handler here
     mov es, bx
-
     call getPDTEntryByName
     ;error handler here
     mov cl, byte [bx]

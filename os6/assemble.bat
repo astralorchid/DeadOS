@@ -6,4 +6,3 @@ nasm ../programs/textedit.asm -f bin -o textedit.bin
 copy /b boot.bin+kernel.bin+terminal.bin+textedit.bin os.flp
 qemu-system-x86_64 -drive format=raw,file=os.flp
 cd ..
-pause

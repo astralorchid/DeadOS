@@ -9,6 +9,8 @@ jmp setInput
 main:
 call setInitVideoMode
 int 0x20
+mov si, OSNAME
+call sprint
 mov al, byte '>'
 mov bl, 0x0C
 call charInt
@@ -71,11 +73,14 @@ input:
     cmp [isReturn], byte 0
     jz .noReturn
     call newLine
-    call getcmd
     call newLine
+    call getcmd
+    ;call newLine
 
     push ax
     push bx
+    mov si, OSNAME
+    call sprint
     mov al, byte '>'
     mov bl, 0x0C
     call charInt
@@ -118,17 +123,51 @@ ret
 
 getcmd:
 pusha
-mov si, command
-call sprint
-
+mov ax, ds
+mov es, ax
+    mov bx, cmdTable
+    .findCmdLoop:
+    push bx
+    cmp [bx], byte 0
+    jz .endCmdTable
+    mov si, command
+    mov di, bx
+    mov cx, 3
+    repe cmpsb
+    cmp cx, byte 0
+    jz .foundCmd
+    pop bx
+    add bx, cmdTableOffset
+    jmp .findCmdLoop
+    .foundCmd:
+        ;push bx
+        ;mov si, bx
+        ;call sprint
+        ;call newLine
+        ;pop bx
+        mov ax, word [bx+4]
+        cmp ax, byte 0
+        jz .endCmdTable
+        call ax
+    .endCmdTable:
+    pop bx
+    .clearCmd:
     mov al, 0x00
     mov di, command
     mov cx, word [InputLen]
     rep stosb
     mov [InputLen], word 0
-
 popa
 ret
+
+pdtcmd:
+int 0x20
+ret
+
+clrcmd:
+call setInitVideoMode
+ret
+
 
 msg db 'WELCOME TO DEADOS', 0
 enableInputOff dw 0
@@ -139,5 +178,14 @@ Scancode db 0
 InputState db 0
 InputLen dw 0
 %include '../kernel/kernel_data.asm'
+cmdTableOffset equ 0x06
+cmdTable:
+    db 'reg', 0
+    dw 0
+    db 'pdt', 0
+    dw pdtcmd
+    db 'clr', 0
+    dw clrcmd
+    db 0,0,0,0
 command:
 times (512*MAX_SECTORS)-($-$$) db 0

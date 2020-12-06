@@ -89,13 +89,6 @@ pop ds
 pop es
 ret
 
-
-pmallocFull:
-    mov si, OUT_OF_MEMORY
-    call sprint
-jmp $
-
-OUT_OF_MEMORY db 'pmalloc: Out of memory', 0
 SEGMENT_START dw 0x1000
 SEGMENT_LIMIT dw 0x7000
 SEGMENT_SIZE dw 0x1000

@@ -43,18 +43,13 @@ mov [DRIVE], dl
 xor dh, dh
 push dx ;save boot drive
 
-    ;too lazy to make macro :)
-    mov ah, 0x02 ;read
-    mov al, KERNEL_RESERVE_SECTORS ;#sectors
-    push ax ;save kernel sectors
-    mov ch, 0 ;cyl
-    mov cl, 0x02 ;start from sector
-    mov dh, 0x00 ;head
+    mov ah, 0x42 ;read
     mov dl, [DRIVE] ;drive
-    mov bx, KERNEL_START ;offset dest
-
+    mov si, DAP
     int 0x13
 
+    mov ax, KERNEL_RESERVE_SECTORS
+    push ax
     mov ax, readProgram
     push ax
     mov ax, loadProgram
@@ -71,26 +66,34 @@ readProgram:
 
     .addKernelSize:
     add bl, KERNEL_RESERVE_SECTORS
-    inc bl
+    ;inc bl
 
     .readSector:
-    mov ah, 0x02 ;read
-        mov al, 0x01  ;#sectors
-        mov ch, 0 ;cyl
-        mov cl, bl ;start from sector
-        ;mov dh, 0x00 ;head
-        mov dl, [DRIVE] ;drive
-        mov bx, 0x1000;offset dest
+    mov ah, 0x42 ;read
+    mov dl, [DRIVE] ;drive
+    mov [DAP.sectors], word 0x01  ;#sectors
+    xor bh, bh
+    mov [DAP.word1], word bx ;start from sector
+    mov [DAP.offset], word 0x1000;offset dest
+    mov [DAP.segment], word 0
+    mov si, DAP
     int 0x13
+
 ret
 
 loadProgram:
-    mov ah, 0x02 ;read
-    ;mov al, 0x02 ;#sectors (Un-hardcode)
-    mov ch, 0 ;cyl
-    ;mov cl start from sector
-    ;mov dh head
+    mov ah, 0x42 ;read
     mov dl, [DRIVE] ;drive
+    push ax
+    xor ah, ah
+    mov [DAP.sectors], word ax  ;#sectors
+    pop ax
+    xor ch, ch
+    dec cx
+    mov [DAP.word1], word cx ;start from sector
+    mov [DAP.offset], word bx;offset dest
+    mov [DAP.segment], word es
+    mov si, DAP
     int 0x13
 ret
 
@@ -100,6 +103,16 @@ DRIVE db 0
 KERNEL_RESERVE_SECTORS equ 10
 KERNEL_START equ 0x7e00
 READ_OFFSET db 0
+DAP:
+.size db 0x10
+.null db 0
+.sectors dw KERNEL_RESERVE_SECTORS
+.offset dw KERNEL_START
+.segment dw 0x0000
+.word1 dw 0x0001
+.word2 dw 0x0000
+.word3 dw 0x0000
+.word4 dw 0x0000
 times 510-($-$$) db 0
 db 0x55
 db 0xAA
