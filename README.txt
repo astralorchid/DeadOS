@@ -1,6 +1,6 @@
 lastest version is in os6 folder
 running successfully on some version of an AMD athlon XP
---we cant get it to run on 64 bit cpus yet--
+Boots on most computers (UEFI requires compatibility mode and other settings)
 
 language:
   x86 - Real Mode
@@ -13,7 +13,6 @@ software:
 
 hardware:
   -usb drive that you don't need
-  -32bit test rig w/ usb booting & bios
 
 
 no tuts yet bc no time
