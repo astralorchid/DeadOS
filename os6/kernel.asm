@@ -40,25 +40,28 @@ call irq.printEnabledIRQ
 call pdt.map
 call pdt.print
 
-mov bx, 0x1000 ;remake program allocator eventually
-mov es, bx
-mov bx, 0x0500
-mov cl, byte [bx]
-mov dh, byte [bx+1]
-xor bx, bx
-call [loadProgram]
-add bx, 0x0020
+    call pmalloc
+    ;error handler here
+    mov es, bx
 
-mov ax, mapProgramInput
-push ax
-push ds
+    call getPDTEntryByName
+    ;error handler here
+    mov cl, byte [bx]
+    mov dh, byte [bx+1]
+    xor bx, bx
+    call [loadProgram]
+    add bx, 0x0020
 
-mov ax, es
-mov ds, ax
+    mov ax, mapProgramInput
+    push ax
+    push ds
 
-push es
-push bx
-retf
+    mov ax, es
+    mov ds, ax
+
+    push es
+    push bx
+    retf
 
 mapProgramInput: ;intial program kernel communication
     xor ax, ax
@@ -151,5 +154,6 @@ times 9 db 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/irq.asm'
 %include '../kernel/pdt.asm'
+%include '../kernel/pmalloc.asm'
 
 times 5120-($-$$) db 0

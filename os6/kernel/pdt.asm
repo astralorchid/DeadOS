@@ -170,7 +170,7 @@ ret
     add bx, 0x10 ;pdt entry offset
     mov di, bx
     pop bx
-    mov si, 0x1011 ;offset of #sectors in program
+    mov si, 0x1011
     mov al, [si]
     mov [di], al
     pop ax
@@ -361,7 +361,7 @@ SectorOffset db 1
 MAX_SECTORS equ 63
 PROGRAM_READ_OFFSET equ 0x1000
 HEAD0_SECTORS db 4
-IS_BOCHS db 1
+IS_BOCHS db 0
 PDT_START equ 0x0500
 PDT_OFFSET equ 0x11
 PDT_ENTRY db 0
