@@ -16,22 +16,9 @@ pdt:
     mov cx, 0x200
     rep stosb
 
-    cmp [IS_BOCHS], byte 1
-    je .BochsDriver
+    mov [HEAD0_SECTORS], byte 63
+    call .readHead0
 
-    .RigDriver:
-
-        mov [HEAD0_SECTORS], byte 63
-        call .readHead0
-        jmp .endDriver
-
-    .BochsDriver:
-
-        mov [HEAD0_SECTORS], byte 4 ;do not change
-        call .readHead0
-        call .readHeads
-
-    .endDriver:
     pop es
 ret
 
@@ -83,70 +70,6 @@ ret
 
         .readDone:
     ret
-
-.readHeads:
-    mov bh, 1; head
-    mov bl, 1; sector
-    push bx
-
-    .mainReadLoop:
-        mov dh, bh ;head
-        mov ah, 1; 0 - head0 check, 1 - all other heads
-
-        call [readProgram]
-        call .isProgram
-
-        cmp bx, 0
-        jz .noProgramHeads
-
-        call .PDTEntry
-        call newLine
-
-        .noProgramHeads:
-            cmp [PDT_ENTRY], word 0
-            jz NoPrograms_Error
-
-            pop ax
-            push ax
-
-            call convertPDTEntry
-
-            cmp [bx], byte 0 ;funny sector exploit
-            jnz .contreadLoop2
-
-            mov bx, word [PDT_ENTRY]
-            inc al ;fuck you
-            mov byte [bx], al
-            mov byte [bx+1], ah ;save head
-        
-
-            call .numProgramSectors
-            call writeProgramName
-
-        .contreadLoop2:
-        pop bx
-        cmp bl, 15 ;#sectors to read
-        jl .incSector
-        je .incHead
-
-    .incSector:
-        inc bl
-        push bx
-        jmp .mainReadLoop
-
-    .incHead:
-        cmp bh, 2; amount of heads to read
-        jl .moveHead
-        je .endHead
-
-    .moveHead:
-        inc bh ;move head
-        mov bl, 1 ;reset sector count
-        push bx
-        jmp .mainReadLoop
-
-    .endHead:
-ret
 
     .isProgram:
         mov cx, PROGRAM_STR_LEN          

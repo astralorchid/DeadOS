@@ -2,7 +2,7 @@
 
 JMP start          ;BS_jmpBoot
 NOP                                                                                                  
-BS_OEMName      DB "HARIBOTE"
+BS_OEMName      DB "DEADBOOT"
 BPB_BytsPerSec  DW 0x0200
 BPB_SecPerClus  DB 0x01
 BPB_RsvdSecCnt  DW 0x0001
@@ -26,7 +26,7 @@ BS_DrvNum       DB 0x80
 BS_Reserved1    DB 0x00
 BS_BootSig      DB 0x29
 BS_VolID        DD 0xa0a615c
-BS_VolLab       DB "ISHIHA BOOT"
+BS_VolLab       DB "DEADBOOT"
 BS_FileSysType  DB "FAT32   "
 
 start:

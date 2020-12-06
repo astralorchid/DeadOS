@@ -73,9 +73,7 @@ input:
     cmp [isReturn], byte 0
     jz .noReturn
     call newLine
-    call newLine
     call getcmd
-    ;call newLine
 
     push ax
     push bx
@@ -132,8 +130,8 @@ mov es, ax
     jz .endCmdTable
     mov si, command
     mov di, bx
-    mov cx, 3
-    repe cmpsb
+    mov cx, 4
+    rep cmpsb
     cmp cx, byte 0
     jz .foundCmd
     pop bx
@@ -168,8 +166,66 @@ clrcmd:
 call setInitVideoMode
 ret
 
+stkcmd:
+mov si, SS_STR
+call sprint
+mov ax, ss
+call hprep
+call hprint
+mov al, byte ' '
+call charInt
+mov si, BP_STR
+call sprint
+mov ax, bp
+call hprep
+call hprint
+mov al, byte ' '
+call charInt
+mov si, SP_STR
+call sprint
+mov ax, sp
+call hprep
+call hprint
+call newLine
+
+mov cx, 0
+.printStack:
+    push ds
+    mov ax, ss
+    mov ds, ax
+
+    mov bx, bp
+    sub bx, cx
+    cmp bx, dx
+    je .endprintStack
+    mov ax, [bx]
+    pop ds
+    pusha
+    call hprep
+    call hprint
+    mov al, byte ' '
+    call charInt
+    popa
+    inc cx
+    inc cx
+    jmp .printStack
+.endprintStack:
+pop ds
+
+call newLine
+mov ax, cx
+pusha
+call hprep
+call hprint
+popa
+call newLine
+ret
+
 
 msg db 'WELCOME TO DEADOS', 0
+SS_STR db 'SS: ', 0
+SP_STR db 'SP: ', 0
+BP_STR db 'BP: ', 0
 enableInputOff dw 0
 enableInputSeg dw 0
 isShift db 0
@@ -186,6 +242,8 @@ cmdTable:
     dw pdtcmd
     db 'clr', 0
     dw clrcmd
+    db 'stk', 0
+    dw stkcmd
     db 0,0,0,0
 command:
 times (512*MAX_SECTORS)-($-$$) db 0
