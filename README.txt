@@ -7,7 +7,7 @@ language:
   
 software:
   -nasm
-  -bochs
+  -qemu
   -rufus
   -your favorite editor
 
