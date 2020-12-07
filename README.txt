@@ -1,6 +1,5 @@
 lastest version is in os6 folder
 Floppy image in /bin/
-running successfully on some version of an AMD athlon XP
 Boots on most computers (UEFI requires compatibility mode and other settings)
 
 language:
