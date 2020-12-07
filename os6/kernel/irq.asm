@@ -251,7 +251,23 @@ iret
 iret
 
 .loadprogramIRQ:
-
+push ds
+push ax
+xor ax, ax
+mov ds, ax
+pop ax
+    call pmalloc
+    ;error handler here
+    mov es, bx
+    call getPDTEntryByName
+    ;error handler here
+    mov cl, byte [bx]
+    mov dh, byte [bx+1]
+    mov al, byte [bx+0x10]
+    xor bx, bx
+    call [loadProgram]
+    add bx, 0x0020
+pop ds
 iret
 
 

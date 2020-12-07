@@ -39,4 +39,6 @@ Program interrupts:
 0x22: load program
 
 to-do list:
-    -redesign program allocator
+-tokens/interpreter
+-program backspace
+-pmalloc errors

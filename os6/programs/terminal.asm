@@ -138,11 +138,6 @@ mov es, ax
     add bx, cmdTableOffset
     jmp .findCmdLoop
     .foundCmd:
-        ;push bx
-        ;mov si, bx
-        ;call sprint
-        ;call newLine
-        ;pop bx
         mov ax, word [bx+4]
         cmp ax, byte 0
         jz .endCmdTable

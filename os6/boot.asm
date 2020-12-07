@@ -1,33 +1,34 @@
 [org 0x7c00]
-
-JMP start          ;BS_jmpBoot
-NOP                                                                                                  
-BS_OEMName      DB "DEADBOOT"
-BPB_BytsPerSec  DW 0x0200
-BPB_SecPerClus  DB 0x01
-BPB_RsvdSecCnt  DW 0x0001
-BPB_NumFATs     DB 0x02
-BPB_RootEntCnt  DW 0x0000
-BPB_TotSec16    DW 0x0000
-BPB_Media       DB 0xf8
-BPB_FATSz16     DW 0x0000
-BPB_SecPerTrk   DW 0xffff
-BPB_NumHeads    DW 0x0001
-BPB_HiDDSec     DD 0x00000000
-BPB_TotSec32    DD 0x00ee5000
-BPB_FATSz32     DD 0x000000ed
-BPB_ExtFlags    DW 0x0000
-BPB_FSVer       DW 0x0000
-BPB_RootClus    DD 0x00000000
-BPB_FSInfo      DW 0x0001
-BPB_BkBootSec   DW 0x0000
-        times   12      DB 0    ;BPB_Reserverd                                                                                               
-BS_DrvNum       DB 0x80
-BS_Reserved1    DB 0x00
-BS_BootSig      DB 0x29
-BS_VolID        DD 0xa0a615c
-BS_VolLab       DB "DEADBOOT"
-BS_FileSysType  DB "FAT32   "
+jmp start
+nop
+BPB:                                                                                                  
+.OEMName db "DEADBOOT"
+.BytsPerSec dw 0x0200
+.SecPerClus db 0x01
+.RsvdSecCnt dw 0x0001
+.NumFATs db 0x02
+.RootEntCnt dw 0x0000
+.TotSec16 dw 0x0000
+.Media db 0xf8
+.FATSz16 dw 0x0000
+.SecPerTrk dw 0xffff
+.NumHeads dw 0x0001
+.HiDDSec dd 0x00000000
+.TotSec32 dd 0x00ee5000
+.FATSz32 dd 0x000000ed
+.ExtFlags dw 0x0000
+.FSVer dw 0x0000
+.RootClus dd 0x00000000
+.FSInfo dw 0x0001
+.BkBootSec dw 0x0000
+times 12 db 0  
+BS:                                                                                           
+.DrvNum       dd 0x80
+.Reserved1    db 0x00
+.BootSig      db 0x29
+.VolID        dd 0xa0a615c
+.VolLab       db "DEADBOOT"
+.FileSysType  db "FAT32   "
 
 start:
 xor ax, ax
@@ -40,6 +41,7 @@ mov bp, 0xFFFF
 mov sp, bp
 
 mov [DRIVE], dl
+mov [BS.DrvNum], dl
 xor dh, dh
 push dx ;save boot drive
 

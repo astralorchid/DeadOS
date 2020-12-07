@@ -13,10 +13,11 @@ pdt:
     mov al, 0x00
     mov bx, word PDT_START
     mov di, bx
-    mov cx, 0x200
+    mov cx, 0x200 ;this amount will do for now
     rep stosb
 
-    mov [HEAD0_SECTORS], byte 63
+    mov [HEAD0_SECTORS], byte 63 ;someday ill make
+                                 ;lba calculations
     call .readHead0
 
     pop es
@@ -71,20 +72,20 @@ ret
         .readDone:
     ret
 
-    .isProgram:
-        mov cx, PROGRAM_STR_LEN          
-        mov si, PROGRAM_READ_OFFSET
-        mov di, PROGRAM_STR
-        rep cmpsb 
+.isProgram:
+    mov cx, PROGRAM_STR_LEN          
+    mov si, PROGRAM_READ_OFFSET
+    mov di, PROGRAM_STR
+    rep cmpsb 
 
-        cmp cx, 0
-        jz .equ_str 
+    cmp cx, 0
+    jz .equ_str 
 
-        mov bx, 0
-        ret
+    mov bx, 0
+    ret
 
-        .equ_str:
-        mov bx, 1
+    .equ_str:
+    mov bx, 1
     ret
 ret
 
