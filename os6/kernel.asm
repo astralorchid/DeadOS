@@ -29,10 +29,16 @@ mov si, KERNEL_SIZE_STR
 call sprint
 xor ah, ah
 mov al, byte [KERNEL_SIZE]
+pusha
 call hprep
 call hprint
 call newLine
-
+popa
+pusha
+call hprep
+call hprint
+call newLine
+popa
 call irq.driver
 
 call irq.printEnabledIRQ

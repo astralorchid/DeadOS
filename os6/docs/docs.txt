@@ -38,7 +38,10 @@ Program interrupts:
 0x21: scancode to ascii converter
 0x22: load program
 
+TOKEN FLAG:
+    -bit 0: on token
+    -bit 7: is char
 to-do list:
--tokens/interpreter
+-lexical tokenizer
 -program backspace
--pmalloc errors
+-pmalloc error handler

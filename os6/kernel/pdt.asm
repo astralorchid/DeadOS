@@ -259,10 +259,10 @@ writeProgramName:
         jmp .writePgrmNameByte
     .endName:
         mov [di], byte 0 ;force null term
-        push bx
-        inc bx
-        inc bx
-        pop bx
+        ;push bx
+        ;inc bx
+        ;inc bx
+        ;pop bx
     popa
 ret
 

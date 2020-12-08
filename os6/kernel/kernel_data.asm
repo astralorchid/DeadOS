@@ -20,63 +20,63 @@ xor cx, cx
 xor bx, bx
 ret
 hprint:
-    mov bx, hstring
-    add bx, [hcounter]
-    inc bx
-    mov [bx], byte 0
+mov bx, hstring
+add bx, [hcounter]
+inc bx
+mov [bx], byte 0
 
-    shl al, 4
-    shr al, 4 ;isolate low nibble
-    add al, 48
-    cmp al, 58
-    jl .isNum ;may be number
-    add al, 7
-    cmp al, 91
-    jl .isChar
-        .isNum:
-            cmp al, 48 ;check if number
-            jl .hloop ;not number
-            push ax
-            ;call charInt
-        .isChar:
-            cmp al, 65
-            jl .hloop
-            push ax
-            ;call charInt
-    .hloop:
-        cmp cl, 1
-        je .endh
-        inc cl
-        mov ax, dx
-        ror al, 4
-        jmp hprint
-    .endh:
-        cmp ch, 1
-        je .highNib
-        jg .endh2
-        inc ch
-        mov ax, dx
-        ror ax, 8
-        jmp hprint
-    .highNib:
-        inc ch
-        mov ax, dx
-        rol ax, 8
-        rol al, 4
-        jmp hprint
-    .endh2:
-        ;mov si, HEX_DEF
-        ;call sprint
-        mov bx, [hcounter]
-        .getStack:
-        cmp bx, 0
-        je .endStack
-        dec bx
-        pop ax
-        call charInt
-        jmp .getStack
-    .endStack:
-        ret
+shl al, 4
+shr al, 4 ;isolate low nibble
+add al, 48
+cmp al, 58
+jl .isNum ;may be number
+add al, 7
+cmp al, 91
+jl .isChar
+    .isNum:
+        cmp al, 48 ;check if number
+        jl .hloop ;not number
+        push ax
+        ;call charInt
+    .isChar:
+        cmp al, 65
+        jl .hloop
+        push ax
+        ;call charInt
+.hloop:
+    cmp cl, 1
+    je .endh
+    inc cl
+    mov ax, dx
+    ror al, 4
+    jmp hprint
+.endh:
+    cmp ch, 1
+    je .highNib
+    jg .endh2
+    inc ch
+    mov ax, dx
+    ror ax, 8
+    jmp hprint
+.highNib:
+    inc ch
+    mov ax, dx
+    rol ax, 8
+    rol al, 4
+    jmp hprint
+.endh2:
+    ;mov si, HEX_DEF
+    ;call sprint
+    mov bx, [hcounter]
+    .getStack:
+    cmp bx, 0
+    je .endStack
+    dec bx
+    pop ax
+    call charInt
+    jmp .getStack
+.endStack:
+    ret
     .drive:
         xor ah, ah
         mov al, byte [DRIVE]

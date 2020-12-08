@@ -9,6 +9,11 @@ jmp setInput
 main:
 call setInitVideoMode
 int 0x20
+
+mov dh, byte 11010101b
+mov dl, 3
+call dasm.clearBit
+
 mov si, OSNAME
 call sprint
 mov al, byte '>'
@@ -162,28 +167,9 @@ call setInitVideoMode
 ret
 
 stkcmd:
-mov si, SS_STR
-call sprint
-mov ax, ss
-call hprep
-call hprint
-mov al, byte ' '
-call charInt
-mov si, BP_STR
-call sprint
-mov ax, bp
-call hprep
-call hprint
-mov al, byte ' '
-call charInt
-mov si, SP_STR
-call sprint
-mov ax, sp
-call hprep
-call hprint
-call newLine
 
 mov cx, 0
+mov dx, sp
 .printStack:
     push ds
     mov ax, ss
@@ -229,6 +215,7 @@ Scancode db 0
 InputState db 0
 InputLen dw 0
 %include '../kernel/kernel_data.asm'
+%include '../kernel/dasm.asm'
 cmdTableOffset equ 0x06
 cmdTable:
     db 'reg', 0
