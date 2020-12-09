@@ -1,6 +1,6 @@
 isPROGRAM db 'program', 0
 prgmNAME db 'TERMINAL', 0
-MAX_SECTORS equ 0x2
+MAX_SECTORS equ 0x4
 prgmSec db MAX_SECTORS, 0
 times 32-(prgmSec-$$) db 0
 

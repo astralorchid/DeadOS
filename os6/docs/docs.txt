@@ -53,7 +53,7 @@ TOKEN FLAG:
     -bit 4: null
     -bit 3: null
     -bit 2: end of text
-    -bit 1: null
+    -bit 1: start of text
     -bit 0: on token 
     
 to-do list:

@@ -4,14 +4,14 @@ dasm:
 ;es:di - token output
 .tokenize:
     xor ah, ah
-    mov al, byte '/'
+    mov al, byte 'B'
     push ax
     call .isChar
     cmp ax, word 0
     jz .notChar
     pop ax
-    ;flag-based procedure
-    ret
+    call .tokenFlagProc
+ret
     .notChar:
         pop ax
         push ax
@@ -19,8 +19,8 @@ dasm:
         cmp ax, word 0
         jz .notNum
         pop ax
-        ;flag-based procedure
-        ret
+        call .tokenFlagProc
+ret
     .notNum:
         pop ax
 ret
@@ -105,4 +105,25 @@ ret
     .endClearWordBit:
 ret
 
-TOKEN_FLAG dw 0
+.startToken:
+ret
+
+.endToken:
+ret
+
+.tokenFlagProc:
+mov ax, word [TOKEN_FLAG]
+ret
+
+TOKEN_FLAG dw 10b
+TOKEN_FLAG_PROC:
+dw dasm.startToken
+dw 0
+dw 1000000010000000b
+dw 0100000010000000b
+dw 0010000010000000b
+dw dasm.endToken
+dw 0
+dw 0001010000000001b
+dw 0001001000000001b
+dw 0001000100000001b
