@@ -37,7 +37,6 @@ ret
     .mayBeUcase:
         cmp al, 91
         jl .mayBeUcase2
-
     .mayBeUcase2:
         cmp al, 65
         jge .setcharflag 
