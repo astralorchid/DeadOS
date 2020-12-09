@@ -83,7 +83,50 @@ jl .isChar
         call hprep
         call hprint
     ret
-
+;dh - input
+bprint:
+pusha
+    xor dl, dl
+    .bprintLoop:
+    push dx
+    mov al, 7
+    sub al, dl
+    mov cl, al
+    shl dh, cl
+    shr dh, 7
+    cmp dh, byte 0
+    jz .bprint0
+    mov al, byte '1'
+    pop dx
+    push ax
+    push dx
+    ;call charInt
+    jmp .bprintcont
+    .bprint0:
+    mov al, byte '0'
+    pop dx
+    push ax
+    push dx
+    ;call charInt
+    .bprintcont:
+    pop dx
+    inc dl
+    cmp dl, byte 7
+    jg .endbprint
+    jmp .bprintLoop
+    .endbprint:
+    xor dh, dh
+    mov cx, 7
+    inc cl
+    .bprintStack:
+    pop ax
+    call charInt
+    dec cl
+    cmp cl, byte 0
+    jz .endbprintStack
+    jmp .bprintStack
+    .endbprintStack:
+popa
 
 getCursorPos:
     mov ah, 0x03 ;get cursor position

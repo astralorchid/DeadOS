@@ -9,16 +9,15 @@ jmp setInput
 main:
 call setInitVideoMode
 int 0x20
-
-mov dh, byte 11010101b
-mov dl, 3
-call dasm.clearBit
+call dasm.tokenize
+call newLine
 
 mov si, OSNAME
 call sprint
 mov al, byte '>'
 mov bl, 0x0C
 call charInt
+
 jmp $
 
 setInput:
@@ -216,6 +215,8 @@ InputState db 0
 InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
+asmFile:
+    db 'mov ax, word [bx]', 0x0D, 'add bx, 0x02', 0xFF
 cmdTableOffset equ 0x06
 cmdTable:
     db 'reg', 0

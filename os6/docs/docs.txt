@@ -39,8 +39,23 @@ Program interrupts:
 0x22: load program
 
 TOKEN FLAG:
-    -bit 0: on token
-    -bit 7: is char
+    -bit 15: is char
+    -bit 14: is num
+    -bit 13: is symbol
+    -bit 12: is space
+    -bit 11: is return (0x0D)
+    -bit 10: prev. byte char
+    -bit 9: prev. byte num
+    -bit 8: prev. byte symbol
+    -bit 7: prev. byte space
+    -bit 6: prev. byte return
+    -bit 5: null
+    -bit 4: null
+    -bit 3: null
+    -bit 2: end of text
+    -bit 1: null
+    -bit 0: on token 
+    
 to-do list:
 -lexical tokenizer
 -program backspace

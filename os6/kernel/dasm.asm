@@ -3,13 +3,33 @@ dasm:
 ;ds:si - start of string
 ;es:di - token output
 .tokenize:
-mov al, byte [si]
+    xor ah, ah
+    mov al, byte '/'
+    push ax
+    call .isChar
+    cmp ax, word 0
+    jz .notChar
+    pop ax
+    ;flag-based procedure
+    ret
+    .notChar:
+        pop ax
+        push ax
+        call .isNum
+        cmp ax, word 0
+        jz .notNum
+        pop ax
+        ;flag-based procedure
+        ret
+    .notNum:
+        pop ax
+ret
 
 ;al - char
-.ischar:
+.isChar:
     cmp al, 122
     jl .mayBeChar
-
+    jmp .clrcharflag
     .mayBeChar:
         cmp al, 97
         jl .mayBeUcase
@@ -17,36 +37,73 @@ mov al, byte [si]
     .mayBeUcase:
         cmp al, 91
         jl .mayBeUcase2
-        
+
     .mayBeUcase2:
         cmp al, 65
-        jge .setcharflag
+        jge .setcharflag 
+    .clrcharflag:
+    mov ax, word [TOKEN_FLAG]
+    mov ch, 15
+    call .clearWordBit
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax ;return 0
     ret
 .setcharflag:
-    or [TOKEN_FLAG], byte 10000000b
+    mov ax, word [TOKEN_FLAG]
+    or ax, 1000000000000000b
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax
+    inc ax
 ret
 
-;mov dh, byte 11010101b (flag)
-;mov dl, 3 (bit #)
-.clearBit:
-pusha
-push dx
-    mov al, 7
-    sub al, dl
-    mov cl, al
-    shl dh, cl
-    shr dh, 7
-    cmp dh, byte 0
-    jz .alreadyZero
-    mov cl, dl
-    shl dh, cl
-    pop ax
-    xor ah, dh
-    jmp .endClearBit
+;al - num
+.isNum:
+    cmp al, 58
+    jl .mayBeNum
+
+    .mayBeNum:
+        cmp al, 48
+        jge .setnumflag
+    .clrnumflag:
+    mov ax, word [TOKEN_FLAG]
+    mov ch, 14
+    call .clearWordBit
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax ;return 0
+    ret
+.setnumflag:
+    mov ax, word [TOKEN_FLAG]
+    or ax, 0100000000000000b
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax
+    inc ax
+ret
+;mov ax, word [TOKEN_FLAG]
+;mov ch, 15 ;bit #
+.clearWordBit:
+    push ax
+    mov cl, 15 ;max bits
+    sub cl, ch ;steps needed to reach 15
+    push cx    
+    shl ax, cl ;move wanted bit to 15
+    shr ax, 15 ;move wanted bit to 0
+    cmp ax, word 0
+    je .alreadyZero
+    pop cx ;ch = bit #, cl = 15-ch
+    pop bx ;original flag
+    push bx
+    mov ch, 15
+    sub ch, cl ;bit #
+    mov cl, ch ;opcode quirks
+    shl ax, cl ;1 in bit #
+    pop bx
+    xor bx, ax
+    mov ax, bx
+    jmp .endClearWordBit
     .alreadyZero:
+    pop cx
     pop ax
-    .endClearBit:
-popa
+    .endClearWordBit:
 ret
 
-TOKEN_FLAG db 00000000b
+TOKEN_FLAG dw 0
