@@ -140,7 +140,7 @@ newLine:
     mov ah, 0x02
     mov bh, 0x00
     inc dh
-    mov dl, 0
+    xor dl, dl
     int 0x10
     popa
 ret

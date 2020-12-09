@@ -3,26 +3,26 @@ dasm:
 ;ds:si - start of string
 ;es:di - token output
 .tokenize:
-    xor ah, ah
-    mov al, byte 'B'
+xor ah, ah
+mov al, byte 'B'
+push ax
+call .isChar
+cmp ax, word 0
+jz .notChar
+pop ax
+call .tokenFlagProc
+ret
+    .notChar:
+    pop ax
     push ax
-    call .isChar
+    call .isNum
     cmp ax, word 0
-    jz .notChar
+    jz .notNum
     pop ax
     call .tokenFlagProc
 ret
-    .notChar:
-        pop ax
-        push ax
-        call .isNum
-        cmp ax, word 0
-        jz .notNum
-        pop ax
-        call .tokenFlagProc
-ret
     .notNum:
-        pop ax
+    pop ax
 ret
 
 ;al - char
