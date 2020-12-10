@@ -63,7 +63,7 @@ to-do list:
 -lexical tokenizer
 -program backspace
 -pmalloc error handler
-
+-turn kernel_data into text gfx library for TERMINAL
 
 symbols:
 46 44 91 93 95

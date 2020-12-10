@@ -1,5 +1,78 @@
 dasm:
 
+.tokenizeCharLoop:
+cmp [si], byte 0x00
+je .endasmFile
+    ;save prev bit 0 in cx
+    mov ax, word [TOKEN_FLAG]
+    bt ax, 0
+    jc .onToken
+    xor cx, cx
+    jmp .gotPrevTokenState
+    .onToken:
+    xor cx, cx
+    inc cx
+
+    .gotPrevTokenState:
+    push cx
+        call dasm.tokenize
+
+        push ax
+        mov dh, byte [TOKEN_FLAG+1]
+        call bprint
+        mov dh, byte [TOKEN_FLAG]
+        call bprint
+        pop ax
+
+        call dasm.tokenFlagShift
+        mov ax, word [TOKEN_FLAG]
+    pop cx
+
+    bt ax, 0
+    jc .nowOnToken
+    
+    cmp cx, 0
+    jz .stillOffTokenNOP ;new and prev = 0
+        ;prev = 0 new = 1
+        pusha
+        mov al, byte 'E'
+        call charInt
+        popa
+    jmp .stillOnToken
+    .stillOffTokenNOP: ;new = 0
+        pusha
+        mov al, byte 'N'
+        call charInt
+        popa
+    jmp .incsi
+    .nowOnToken: ;new = 1
+    cmp cx, 1
+    je .stillOnToken
+    call dasm.incTotalTokens
+    .stillOnToken:
+
+    push ax ;just for charint
+        mov al, [si]
+        mov [di], al
+
+        push ax
+        mov al, byte ' '
+        call charInt
+        pop ax
+
+        call charInt
+        call newLine
+    pop ax
+
+        inc di
+    .incsi:
+    inc si
+    jmp .tokenizeCharLoop
+.endasmFile:
+;pop es
+;pop ds
+ret
+
 ;ds:si - start of string
 ;es:di - token output
 .tokenize:
@@ -41,6 +114,15 @@ ret
 ret
     .notSpace:
     pop ax
+    push ax
+    call .isSpace
+    cmp ax, word 0
+    jz .notSpace
+    pop ax
+    call .tokenFlagProc
+ret
+    .notReturn:
+    pop ax
 ret
 
 ;al - char
@@ -55,6 +137,8 @@ ret
     .mayBeUcase:
         cmp al, 91
         jl .mayBeUcase2
+        je .setsymflag
+        jg .isSymbol
     .mayBeUcase2:
         cmp al, 65
         jge .setcharflag 
@@ -99,8 +183,6 @@ ret
     cmp al, 46
     je .setsymflag
     cmp al, 44
-    je .setsymflag
-    cmp al, 91
     je .setsymflag
     cmp al, 93
     je .setsymflag
