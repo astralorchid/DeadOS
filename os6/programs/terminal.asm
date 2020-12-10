@@ -22,7 +22,7 @@ mov di, asmTokens
 cmp [si], byte 0x00
 je .endasmFile
     ;save prev bit 0 in cx
-    mov ax, word [TOKEN_FLAG]
+    mov word ax, [TOKEN_FLAG]
     bt ax, 0
     jc .onToken
     xor cx, cx
@@ -34,12 +34,22 @@ je .endasmFile
     .gotPrevTokenState:
     push cx
         call dasm.tokenize
+
+        push ax
+        mov dh, byte [TOKEN_FLAG+1]
+        call bprint
+        mov dh, byte [TOKEN_FLAG]
+        call bprint
+        pop ax
+
         call dasm.tokenFlagShift
         mov ax, word [TOKEN_FLAG]
+        
     pop cx
 
     bt ax, 0
     jc .nowOnToken
+    
     cmp cx, 0
     jz .stillOffTokenNOP ;new and prev = 0
         ;prev = 0 new = 1
@@ -48,11 +58,23 @@ je .endasmFile
     jmp .incsi
     .nowOnToken: ;new = 1
     cmp cx, 1
+    je .stillOnToken
+    call dasm.incTotalTokens
     .stillOnToken:
-    push ax
+
+    push ax ;just for charint
         mov al, [si]
         mov [di], al
+
+        push ax
+        mov al, byte ' '
+        call charInt
+        pop ax
+
+        call charInt
+        call newLine
     pop ax
+
         inc di
     .incsi:
     inc si
@@ -61,12 +83,19 @@ je .endasmFile
 pop es
 pop ds
 
-mov si, asmFile
-call sprint
-call newLine
-mov si, asmTokens
-call sprint
-call newLine
+        mov si, asmFile
+        call sprint
+        call newLine
+        mov si, asmTokens
+        call sprint
+        call newLine
+
+        pusha
+        mov ax, word [TOTAL_TOKENS]
+        call hprep
+        call hprint
+        popa
+        call newLine
 
 mov si, OSNAME
 call sprint
@@ -272,7 +301,7 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'mov   ax, word  [bx]   add   bx,   0x02', 0x00
+    db 'mov ax, word [bx]', 0x00
 cmdTableOffset equ 0x06
 asmTokens:
     times 100 db 0

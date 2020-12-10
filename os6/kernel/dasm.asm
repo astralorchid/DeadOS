@@ -224,7 +224,16 @@ pop bx
 pop ax
 ret
 
+.incTotalTokens:
+push ax
+    mov ax, word [TOTAL_TOKENS]
+    inc ax
+    mov word [TOTAL_TOKENS], ax
+pop ax
+ret
+
 TOKEN_FLAG dw 0000000000000000b
+TOTAL_TOKENS dw 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
