@@ -42,21 +42,28 @@ TOKEN FLAG:
     -bit 15: is char
     -bit 14: is num
     -bit 13: is symbol
-    -bit 12: is space
+    -bit 12: is space/tab
     -bit 11: is return (0x0D)
     -bit 10: prev. byte char
     -bit 9: prev. byte num
     -bit 8: prev. byte symbol
-    -bit 7: prev. byte space
+    -bit 7: prev. byte space/tab
     -bit 6: prev. byte return
     -bit 5: null
     -bit 4: null
     -bit 3: null
-    -bit 2: end of text
-    -bit 1: start of text
+    -bit 2: null
+    -bit 1: null
     -bit 0: on token 
-    
+
+TFP: token flag procedure
+PDT: program descriptor Table
+
 to-do list:
 -lexical tokenizer
 -program backspace
 -pmalloc error handler
+
+
+symbols:
+46 44 91 93 95

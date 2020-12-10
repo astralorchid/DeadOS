@@ -9,7 +9,63 @@ jmp setInput
 main:
 call setInitVideoMode
 int 0x20
-call dasm.tokenize
+
+push ds
+push es
+mov ax, 0x1000
+mov ds, ax
+mov es, ax
+
+mov si, asmFile
+mov di, asmTokens
+.tokenizeCharLoop:
+cmp [si], byte 0x00
+je .endasmFile
+    ;save prev bit 0 in cx
+    mov ax, word [TOKEN_FLAG]
+    bt ax, 0
+    jc .onToken
+    xor cx, cx
+    jmp .gotPrevTokenState
+    .onToken:
+    xor cx, cx
+    inc cx
+
+    .gotPrevTokenState:
+    push cx
+        call dasm.tokenize
+        call dasm.tokenFlagShift
+        mov ax, word [TOKEN_FLAG]
+    pop cx
+
+    bt ax, 0
+    jc .nowOnToken
+    cmp cx, 0
+    jz .stillOffTokenNOP ;new and prev = 0
+        ;prev = 0 new = 1
+    jmp .stillOnToken
+    .stillOffTokenNOP: ;new = 0
+    jmp .incsi
+    .nowOnToken: ;new = 1
+    cmp cx, 1
+    .stillOnToken:
+    push ax
+        mov al, [si]
+        mov [di], al
+    pop ax
+        inc di
+    .incsi:
+    inc si
+    jmp .tokenizeCharLoop
+.endasmFile:
+pop es
+pop ds
+
+mov si, asmFile
+call sprint
+call newLine
+mov si, asmTokens
+call sprint
 call newLine
 
 mov si, OSNAME
@@ -216,8 +272,10 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'mov ax, word [bx]', 0x0D, 'add bx, 0x02', 0xFF
+    db 'mov   ax, word  [bx]   add   bx,   0x02', 0x00
 cmdTableOffset equ 0x06
+asmTokens:
+    times 100 db 0
 cmdTable:
     db 'reg', 0
     dw 0
