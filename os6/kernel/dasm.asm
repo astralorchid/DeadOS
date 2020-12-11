@@ -3,6 +3,7 @@ dasm:
 .tokenizeCharLoop:
 cmp [si], byte 0x00
 je .endasmFile
+.startasmFile:
     ;save prev bit 0 in cx
     mov ax, word [TOKEN_FLAG]
     bt ax, 0
@@ -17,12 +18,12 @@ je .endasmFile
     push cx
         call dasm.tokenize
 
-        push ax
-        mov dh, byte [TOKEN_FLAG+1]
-        call bprint
-        mov dh, byte [TOKEN_FLAG]
-        call bprint
-        pop ax
+        ;push ax
+        ;mov dh, byte [TOKEN_FLAG+1]
+        ;call bprint
+        ;mov dh, byte [TOKEN_FLAG]
+        ;call bprint
+        ;pop ax
 
         call dasm.tokenFlagShift
         mov ax, word [TOKEN_FLAG]
@@ -34,16 +35,13 @@ je .endasmFile
     cmp cx, 0
     jz .stillOffTokenNOP ;new and prev = 0
         ;prev = 0 new = 1
-        pusha
-        mov al, byte 'E'
-        call charInt
-        popa
+    ;end of token (at the space)
+    ;si and di are equal here
+    
     jmp .stillOnToken
     .stillOffTokenNOP: ;new = 0
-        pusha
-        mov al, byte 'N'
-        call charInt
-        popa
+    ;nop
+    ;call newLine
     jmp .incsi
     .nowOnToken: ;new = 1
     cmp cx, 1
@@ -55,13 +53,13 @@ je .endasmFile
         mov al, [si]
         mov [di], al
 
-        push ax
-        mov al, byte ' '
-        call charInt
-        pop ax
+        ;push ax
+        ;mov al, byte ' '
+        ;call charInt
+        ;pop ax
 
-        call charInt
-        call newLine
+        ;call charInt
+        ;call newLine
     pop ax
 
         inc di
@@ -69,6 +67,8 @@ je .endasmFile
     inc si
     jmp .tokenizeCharLoop
 .endasmFile:
+mov [di], byte ' '
+mov [di+1], byte 0
 ;pop es
 ;pop ds
 ret
@@ -161,6 +161,7 @@ ret
 .isNum:
     cmp al, 58
     jl .mayBeNum
+    je .setsymflag
     .mayBeNum:
         cmp al, 48
         jge .setnumflag
@@ -266,6 +267,14 @@ ret
 .nop:
 ret
 
+.spaceBefore:
+push ax
+mov al, [di]
+mov [di], byte ' '
+inc di
+pop ax
+ret
+
 .tokenFlagProc:
 mov ax, word [TOKEN_FLAG]
 mov bx, TOKEN_FLAG_PROC
@@ -330,6 +339,13 @@ dw 0000000000000000b
 dw 0001010000000001b ;is space prev char on token
 dw 0001001000000001b ;is space prev num on token
 dw 0001000100000001b ;is space prev sym on token
+dw dasm.spaceBefore
+dw 0000000000000000b
+dw 0010010000000001b ;is sym prev char on token
+dw 1000000100000001b ;is char prev sym on token
+dw 0010001000000001b ;is sym prev char on token
+dw 0100000100000001b ;is char prev sym on token
 dw dasm.nop
+dw 0000000000000000b
 dw 0001000000000000b
 dw 1111111111111111b ;end of struct

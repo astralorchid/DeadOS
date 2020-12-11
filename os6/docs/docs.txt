@@ -49,12 +49,15 @@ TOKEN FLAG:
     -bit 8: prev. byte symbol
     -bit 7: prev. byte space/tab
     -bit 6: prev. byte return
-    -bit 5: null
+    -bit 5: label
     -bit 4: null
     -bit 3: null
     -bit 2: null
     -bit 1: null
     -bit 0: on token 
+
+OPERAND IDENTITY FLAG:
+
 
 TFP: token flag procedure
 PDT: program descriptor Table
