@@ -403,3 +403,9 @@ dw 0000000000000000b
 dw 0001000000000000b
 ;dw 0001001000000000b
 dw 1111111111111111b ;end of struct
+OPCODE_TABLE:
+db 'mov',0
+db 'ax', 0
+db 'bx', 0
+db 'cx'
+db 'dx', 0 

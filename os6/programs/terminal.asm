@@ -20,14 +20,19 @@ xor ax, ax
 push ax
 mov word [TOKEN_FLAG], ax
 mov si, asmFile
+push si
 mov di, asmTokens
+push di
 ;mov [di], byte ' '
 ;inc di
 call dasm.tokenizeCharLoop
-
+pop di
+pop si
+mov si, di ;prep token scan
 
 pop es
 pop ds
+;print output
         mov si, asmFile
         call sprint
         call newLine
