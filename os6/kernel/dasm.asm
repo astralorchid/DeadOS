@@ -4,7 +4,7 @@ dasm:
 cmp [si], byte 0x00
 je .endasmFile
 .startasmFile:
-    ;save prev bit 0 in cx
+    ;save prev bit 0 in cx (edit: why did i say this?)
     mov ax, word [TOKEN_FLAG]
     bt ax, 0
     jc .onToken
@@ -46,19 +46,38 @@ je .endasmFile
     .nowOnToken: ;new = 1
     cmp cx, 1
     je .stillOnToken
-    call dasm.incTotalTokens
+
     .stillOnToken:
 
     push ax ;just for charint
         mov al, [si]
         mov [di], al
 
+        cmp [di], byte 0x0D
+        jne .changeR
+        ;push si
+        ;.removeSpaceRet:
+        ;inc si
+        ;cmp [si], byte ' '
+        ;jne .tokenizeReturn
+        mov [si], byte 0x0D
+        ;jmp .removeSpaceRet
+       ; .tokenizeReturn:
+        ;pop si
+        mov [di], byte ' '
+        inc di
+        mov [di], byte 59
+        inc di
+        mov [di], byte ' '
+
+        .changeR:
+    
         ;push ax
         ;mov al, byte ' '
         ;call charInt
         ;pop ax
 
-        ;call charInt
+        call charInt
         ;call newLine
     pop ax
 
@@ -115,14 +134,33 @@ ret
     .notSpace:
     pop ax
     push ax
-    call .isSpace
+    call .isReturn
     cmp ax, word 0
-    jz .notSpace
+    jz .notReturn
     pop ax
     call .tokenFlagProc
 ret
     .notReturn:
     pop ax
+ret
+
+.isReturn:
+    cmp al, 0x0D
+    je .setretflag
+    .clrretflag:
+    mov ax, word [TOKEN_FLAG]
+    mov ch, 11
+    call .clearWordBit
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax ;return 0
+    ret
+.setretflag:
+    mov ax, word [TOKEN_FLAG]
+    or ax, 0000100000000000b
+    mov word [TOKEN_FLAG], ax
+    xor ax, ax
+    inc ax
+ret
 ret
 
 ;al - char
@@ -315,16 +353,12 @@ pop bx
 pop ax
 ret
 
-.incTotalTokens:
-push ax
-    mov ax, word [TOTAL_TOKENS]
-    inc ax
-    mov word [TOTAL_TOKENS], ax
-pop ax
-ret
+.onReturn:
+call dasm.endToken
+jmp .onToken
 
 TOKEN_FLAG dw 0000000000000000b
-TOTAL_TOKENS dw 0
+LINE_NUMBER dw 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
@@ -334,18 +368,38 @@ dw 0010000010000000b ;is sym prev space
 dw 1000000000000000b ;is char start of text
 dw 0100000000000000b ;is num start of text
 dw 0010000000000000b ;is sym start of text
+
+dw 1000000001000000b
+dw 0100000001000000b
+dw 0010000001000000b
+dw 0001000001000000b
+
+
+
+;dw 0000110000000000b
 dw dasm.endToken
 dw 0000000000000000b
 dw 0001010000000001b ;is space prev char on token
 dw 0001001000000001b ;is space prev num on token
 dw 0001000100000001b ;is space prev sym on token
+
 dw dasm.spaceBefore
 dw 0000000000000000b
 dw 0010010000000001b ;is sym prev char on token
 dw 1000000100000001b ;is char prev sym on token
 dw 0010001000000001b ;is sym prev char on token
 dw 0100000100000001b ;is char prev sym on token
+
+dw dasm.onReturn
+dw 0000000000000000b
+
+;dw 0000110000000001b
+;dw 0000101000000001b
+;dw 0000100100000001b
+;dw 0000100010000001b
+
 dw dasm.nop
 dw 0000000000000000b
 dw 0001000000000000b
+;dw 0001001000000000b
 dw 1111111111111111b ;end of struct

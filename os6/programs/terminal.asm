@@ -8,8 +8,7 @@ jmp setInput
 
 main:
 call setInitVideoMode
-int 0x20
-
+;int 0x20
 ;tokenizer testing
 push ds
 push es
@@ -22,8 +21,8 @@ push ax
 mov word [TOKEN_FLAG], ax
 mov si, asmFile
 mov di, asmTokens
-mov [di], byte ' '
-inc di
+;mov [di], byte ' '
+;inc di
 call dasm.tokenizeCharLoop
 
 
@@ -34,13 +33,6 @@ pop ds
         call newLine
         mov si, asmTokens
         call sprint
-        call newLine
-
-        pusha
-        mov ax, word [TOTAL_TOKENS]
-        call hprep
-        call hprint
-        popa
         call newLine
 
 mov si, OSNAME
@@ -247,10 +239,10 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'mov ax, word[bx   ] jmp ds:0x0000', 0x00
+    db 'xor ax  ,ax',0x0D,'mov ds, ax',0x0D,'jmp 0x7c00 ',0x0D,' mov ax , word[mem]',0x0D,' mov ax, word [0x0800]',0x0D,'inc ax',0x0d,'jmp ds: 0x0000', 0x00
 cmdTableOffset equ 0x06
 asmTokens:
-    times 100 db 0
+    times 500 db 0
 cmdTable:
     db 'reg', 0
     dw 0

@@ -49,7 +49,7 @@ TOKEN FLAG:
     -bit 8: prev. byte symbol
     -bit 7: prev. byte space/tab
     -bit 6: prev. byte return
-    -bit 5: label
+    -bit 5: null
     -bit 4: null
     -bit 3: null
     -bit 2: null
@@ -67,6 +67,9 @@ to-do list:
 -program backspace
 -pmalloc error handler
 -turn kernel_data into text gfx library for TERMINAL
+
+REMINDERS:
+-Remove all spaces, tabs, and returns from a file before starting tokenzier
 
 symbols:
 46 44 91 93 95
