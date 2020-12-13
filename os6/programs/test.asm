@@ -1,19 +1,16 @@
-MNEMONIC:
-db 'add', ' '
-db 'or', ' '
-db 'adc', ' '
-db 'sbb', ' '
-db 'and', ' '
-db 'xor', ' '
-db 'cmp', ' '
-db 0
-db 'rm8,r8', ' ', 0x01 ;-1 eventually
-db 'rm16,r16', ' ', 0x02
-db 'r8,rm8', ' ', 0x03
-db 'r16,rm16', ' ', 0x04
-db 'al,im8', ' ', 0x05
-db 'ax,im16', ' ', 0x06
-db 0xFF
-db 'mov', ' '
-db 'rm8, r8'
+;mov 10001000
+;xor 00110000
+;cmp 00111000
+;add 00000000
+;or  00001000
+;and 00100000
+;sub 00101000
+;test 10000100
+inc byte [0x0000] ;01000000
+push ax
 
+;push gpr 01010000
+;push segr 00000110
+
+;push byte imm 01101010
+;push word imm 01101000

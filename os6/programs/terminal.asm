@@ -1,6 +1,6 @@
 isPROGRAM db 'program', 0
 prgmNAME db 'TERMINAL', 0
-MAX_SECTORS equ 0x4
+MAX_SECTORS equ 0xf
 prgmSec db MAX_SECTORS, 0
 times 32-(prgmSec-$$) db 0
 
@@ -244,7 +244,7 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'xor ax  ,ax',0x0D,'mov ds, ax',0x0D,'jmp 0x7c00 ',0x0D,' mov ax , word[mem]',0x0D,' mov ax, word [0x0800]',0x0D,'inc ax',0x0d,'jmp ds: 0x0000', 0x00
+    db 'xor ax     ,ax',0x0D,'mov ds, ax',0x0D,'jmp 0x7c00 ',0x0D,' mov ax , word[mem]',0x0D,' mov ax, word [0x0800]',0x0D,'inc ax',0x0d,'jmp ds: 0x0000', 0x00
 cmdTableOffset equ 0x06
 asmTokens:
     times 500 db 0

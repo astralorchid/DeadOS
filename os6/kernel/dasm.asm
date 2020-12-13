@@ -55,15 +55,9 @@ je .endasmFile
 
         cmp [di], byte 0x0D
         jne .changeR
-        ;push si
-        ;.removeSpaceRet:
-        ;inc si
-        ;cmp [si], byte ' '
-        ;jne .tokenizeReturn
+
         mov [si], byte 0x0D
-        ;jmp .removeSpaceRet
-       ; .tokenizeReturn:
-        ;pop si
+
         mov [di], byte ' '
         inc di
         mov [di], byte 59
@@ -358,7 +352,96 @@ call dasm.endToken
 jmp .onToken
 
 TOKEN_FLAG dw 0000000000000000b
+INST_FLAG dw 0b
 LINE_NUMBER dw 0
+OPCODE db 00000000b
+MODRM db 00000000b
+MNEM_0OP:
+db 'nop ',  10010000b
+db 'pusha ',01100000b
+db 'popa ', 01100001b
+db 'cmpsb ',10100110b
+db 'cmpsw ',10100111b
+db 'movsb ',10100100b
+db 'movsw ',10100101b
+db 'scasb ',10101110b
+db 'scasw ',10101111b
+db 'ret ',  11000011b
+db 'retf ', 11001011b
+db 0
+MNEM_1OP:
+db 'inc ',01000000b ;byte [] 11111110 word [] 11111111 w/ modrm
+db 'dec '
+db 'call '
+db 'jmp '
+db 'push '
+db 'pop '
+db 'int '
+db 'not '
+db 'neg '
+db 'jo '
+db 'jno '
+db 'jb '
+db 'jnae '
+db 'jc '
+db 'jnb '
+db 'jae '
+db 'jnc '
+db 'jz '
+db 'je '
+db 'jnz '
+db 'jne '
+db 'jbe '
+db 'jna '
+db 'jnbe '
+db 'ja '
+db 'js '
+db 'jns '
+db 'jp '
+db 'jpe '
+db 'jnp '
+db 'jpo '
+db 'jl '
+db 'jnge '
+db 'jnl '
+db 'jge '
+db 'jle '
+db 'jng '
+db 'jnle '
+db 'jg '
+db 'daa '
+db 0
+MNEM_2OP:
+db 'mov ',10001000b
+db 'xor ',00110000b
+db 'cmp ',00111000b
+db 'add ',00000000b
+db 'or ',00001000b
+db 'adc '
+db 'sbb '
+db 'and ',00100000b
+db 'sub ',00101000b
+db 'das '
+db 'aaa '
+db 'aas '
+db 'ins '
+db 'insb '
+db 'insw '
+db 'outs '
+db 'outsb '
+db 'ouisw '
+db 'test ',10000100b
+db 'xchg '
+db 'lea '
+db 'rol '
+db 'ror '
+db 'rcl '
+db 'rcr '
+db 'shl '
+db 'sal '
+db 'shr '
+db 'sar '
+db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
@@ -373,8 +456,6 @@ dw 1000000001000000b
 dw 0100000001000000b
 dw 0010000001000000b
 dw 0001000001000000b
-
-
 
 ;dw 0000110000000000b
 dw dasm.endToken
@@ -403,9 +484,3 @@ dw 0000000000000000b
 dw 0001000000000000b
 ;dw 0001001000000000b
 dw 1111111111111111b ;end of struct
-OPCODE_TABLE:
-db 'mov',0
-db 'ax', 0
-db 'bx', 0
-db 'cx'
-db 'dx', 0 
