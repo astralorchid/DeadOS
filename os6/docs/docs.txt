@@ -57,14 +57,20 @@ TOKEN FLAG:
     -bit 0: on token 
 
 INSTRUCTION FLAG:
--bit 5: OPERAND 2 TYPE (REG/MEM)
+-bit 10: OPERAND 2 LABEL
+-bit 9: OPERAND 1 LABEL
+-bit 8: OPERAND 2 IMMEDIATE
+-bit 7: OPERAND 1 IMMEDIATE
+-bit 6: OPERAND 2 TYPE (REG/MEM)
 -bit 5: OPERAND 1 TYPE (REG/MEM)
 -bit 4: OPERAND 2 SIZE (BYTE/WORD)
 -bit 3: OPERAND 1 SIZE (BYTE/WORD)
--bit 2: LABEL DEFINITION/PROC
--bit 1: VALID 2OP INSTRUCTION
+-bit 2: VALID 2OP INSTRUCTION
 -bit 1: VALID 1OP INSTRUCTION
 -bit 0: VALID 0OP INSTRUCTION
+
+INSTRUCTION PROCESSING NOTES:
+    -Have a local counter for operands and cmp with bits 0-2
 
 TFP: token flag procedure
 PDT: program descriptor Table

@@ -18,12 +18,12 @@ je .endasmFile
     push cx
         call dasm.tokenize
 
-        ;push ax
-        ;mov dh, byte [TOKEN_FLAG+1]
-        ;call bprint
-        ;mov dh, byte [TOKEN_FLAG]
-        ;call bprint
-        ;pop ax
+        push ax
+        mov dh, byte [TOKEN_FLAG+1]
+        call bprint
+        mov dh, byte [TOKEN_FLAG]
+        call bprint
+        pop ax
 
         call dasm.tokenFlagShift
         mov ax, word [TOKEN_FLAG]
@@ -66,10 +66,10 @@ je .endasmFile
 
         .changeR:
     
-        ;push ax
-        ;mov al, byte ' '
-        ;call charInt
-        ;pop ax
+        push ax
+        mov al, byte ' '
+        call charInt
+        pop ax
 
         call charInt
         ;call newLine
@@ -301,7 +301,7 @@ ret
 
 .spaceBefore:
 push ax
-mov al, [di]
+;mov al, [di]
 mov [di], byte ' '
 inc di
 pop ax
