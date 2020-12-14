@@ -2,12 +2,7 @@ sprint:
     lodsb
     or al, al
     jz .end
-    cmp [si], byte 0x0d
-    je .nocharint
     call charInt
-    jmp sprint
-    .nocharint:
-    ;inc si
     jmp sprint
     .end:
 ret
