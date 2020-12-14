@@ -35,9 +35,7 @@ push di
 call dasm.tokenizeCharLoop
 pop di
 pop si
-        ;mov si, asmFile
-        ;call sprint
-        ;call newLine
+
         mov si, asmTokens
         call sprint
         call newLine
@@ -84,19 +82,13 @@ retf
 input:
     pop ax
     mov bx, ax
-
     pop ax
     mov cx, ax
-
     pop ax
-
     mov [isReturn], ah
     mov [isShift], al
-
     pop ax
-
     mov [InputState], al
-
     pop ax;scancode
     mov [Scancode], al
     push ax ;save scancode again
@@ -251,7 +243,7 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'mov ax, bx',0x0D,'xor byte [cx], 0x0010',0x0D,'inc ax',0x0D,'ret',0x0D,'inc ',0x0D,0x00
+    db 'or ax, bx',0x0D,'xor byte [cx], 0x0010',0x0D,'inc ax',0x0D,'ret',0x0D,'inc ',0x0D,0x00
 cmdTableOffset equ 0x06
 asmTokens:
     times 500 db 0

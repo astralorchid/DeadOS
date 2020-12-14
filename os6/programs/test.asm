@@ -8,6 +8,7 @@
 ;test 10000100
 inc byte [0x0000] ;01000000
 push ax
+ret
 
 ;push gpr 01010000
 ;push segr 00000110

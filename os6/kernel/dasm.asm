@@ -415,6 +415,15 @@ ret
     call bprint
     mov dh, byte [INST_FLAG]
     call bprint
+    mov al, byte ' '
+    call charInt
+    popa
+
+    pusha
+    mov dh, byte [INST_ERR_FLAG+1]
+    call bprint
+    mov dh, byte [INST_ERR_FLAG]
+    call bprint
     popa
 
     pusha
@@ -445,7 +454,7 @@ ret
     mov word [LINE_NUMBER], ax
 
     mov word [INST_FLAG], 0
-
+    ;mov word [INST_ERR_FLAG], 0
     mov byte [OPCODE], 0
 ret
 
@@ -461,10 +470,25 @@ ret
 ret
 
 .assembleToken:
+
+bt word [INST_FLAG], 0
+jc .hasInst
+jmp .noInst
+bt word [INST_FLAG], 1
+jc .hasInst
+jmp .noInst
+bt word [INST_FLAG], 2
+jc .hasInst
+jmp .noInst
+
+    .noInst:
 pusha
     mov si, di
     mov di, MNEM_0OP
+
+    mov bx, OPCODE
     call .useMnemStruct
+
     cmp ax, 0
     jz .Not0OP
     or [INST_FLAG], byte 1
@@ -473,6 +497,8 @@ popa
 pusha
     mov si, di
     mov di, MNEM_1OP
+
+    mov bx, OPCODE
     call .useMnemStruct
     cmp ax, 0
     jz .Not1OP
@@ -482,6 +508,8 @@ popa
 pusha
     mov si, di
     mov di, MNEM_2OP
+
+    mov bx, OPCODE
     call .useMnemStruct
     cmp ax, 0
     jz .Not2OP
@@ -489,20 +517,67 @@ pusha
     .Not2OP:
 popa
 
-bt word [INST_FLAG], 0
-jc .isInst
-jmp .notInst
-bt word [INST_FLAG], 1
-jc .isInst
-jmp .notInst
-bt word [INST_FLAG], 2
-jc .isInst
-    .isInst:
-    .notInst:
+.hasInst:
+    mov di, tokenToAssemble
+    cmp [di], byte '['
+    je .isOpenMemToken
+    cmp [di], byte ']'
+    je .isCloseMemToken
+    jmp .notOpenMemToken
+    .isOpenMemToken:
+    or word [INST_FLAG], word 1000000000000b
+;popa
+ret
+    .isCloseMemToken:
+    mov ax, word [INST_FLAG]
+    mov ch, 12
+    call .clearWordBit
+    mov word [INST_FLAG], ax
+;popa
+ret
+    .notOpenMemToken:
+    bt word [INST_FLAG], 12
+    jc .isMemToken
+;popa
+ret
+
+.isMemToken:
+    cmp byte [OPERANDS], byte 1
+    jl .is1stOperand
+    je .is2ndOperand
+ret
+    .is1stOperand:
+    or word [INST_FLAG], word 100000b
+    jmp .getOperandType
+    .is2ndOperand:
+    or word [INST_FLAG], word 1000000b
+    .getOperandType:
+    add byte [OPERANDS], 1
+
+    
+    pusha
+    mov si, tokenToAssemble
+    mov di, REGISTERS
+    mov bx, RMm
+    call .useMnemStruct
+    cmp ax, 0
+    jz .notMemRegister
+    
+    pusha
+        mov dh, byte [RMm]
+        call bprint
+    popa
+
+popa
+ret
+    .notMemRegister:
+
+popa
 ret
 
 .useMnemStruct:
     .cmpMnemChar:
+
     mov ah, byte [si]
     mov al, byte [di]
 
@@ -516,39 +591,42 @@ ret
     inc di
     jmp .cmpMnemChar
     .notequalChar:
-        cmp [di], byte ' '
-        je .jmpToNextMnem
-        cmp [di], byte 0
-        jz .endOfMnemStruct
+    cmp [di], byte ' '
+    je .jmpToNextMnem
+    cmp [di], byte 0
+    jz .endOfMnemStruct
     .getToMnemEnd:
-        inc di
-        cmp [di], byte ' '
-        je .jmpToNextMnem
-        cmp [di], byte 0
-        jz .endOfMnemStruct
-        jmp .getToMnemEnd
+    inc di
+    cmp [di], byte ' '
+    je .jmpToNextMnem
+    cmp [di], byte 0
+    jz .endOfMnemStruct
+    jmp .getToMnemEnd
     .jmpToNextMnem:
-        inc di
-        inc di
-        jmp .cmpMnemChar
+    inc di
+    inc di
+    jmp .cmpMnemChar
     .endOfMnem:
     push ax
     mov al, [di+1]
-    mov [OPCODE], al
+    mov [bx], al ;used to be [OPCODE]
     pop ax
 
     xor ax, ax
     inc ax
-    ret
+ret
     .endOfMnemStruct:
     xor ax, ax
 ret
 
 TOKEN_FLAG dw 0000000000000000b
-TOKEN_ERR_FLAG dw 0
+INST_ERR_FLAG dw 0
 INST_FLAG dw 0b
 LINE_NUMBER dw 0
 OPCODE db 00000000b
+OPERANDS db 0
+REG db 0
+RMm db 0
 MODRM db 00000000b
 MNEM_0OP:
 db 'nop ',  10010000b
@@ -635,6 +713,24 @@ db 'shl ',1
 db 'sal ',1
 db 'shr ',1
 db 'sar ',1
+db 0
+REGISTERS:
+db 'al ', 0011b
+db 'ax ', 011b
+db 'cl ', 0011b
+db 'cx ', 0011b
+db 'dl ', 0010b
+db 'dx ', 0010b
+db 'bl ', 0011b
+db 'bx ', 0011b
+db 'ah ', 0100b
+db 'sp ', 0100b
+db 'ch ', 0101b
+db 'bp ', 0101b
+db 'dh ', 0110b
+db 'si ', 0110b
+db 'bh ', 0111b
+db 'di ', 0111b
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
