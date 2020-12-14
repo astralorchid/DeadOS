@@ -18,12 +18,12 @@ je .endasmFile
     push cx
         call dasm.tokenize
 
-        push ax
-        mov dh, byte [TOKEN_FLAG+1]
-        call bprint
-        mov dh, byte [TOKEN_FLAG]
-        call bprint
-        pop ax
+        ;push ax
+        ;mov dh, byte [TOKEN_FLAG+1]
+        ;call bprint
+        ;mov dh, byte [TOKEN_FLAG]
+        ;call bprint
+        ;pop ax
 
         call dasm.tokenFlagShift
         mov ax, word [TOKEN_FLAG]
@@ -66,12 +66,12 @@ je .endasmFile
 
         .changeR:
     
-        push ax
-        mov al, byte ' '
-        call charInt
-        pop ax
+        ;push ax
+        ;mov al, byte ' '
+        ;call charInt
+        ;pop ax
 
-        call charInt
+        ;call charInt
         ;call newLine
     pop ax
 
@@ -135,6 +135,7 @@ ret
     call .tokenFlagProc
 ret
     .notReturn:
+    call .tokenFlagProc
     pop ax
 ret
 
@@ -195,8 +196,8 @@ ret
     jl .mayBeNum
     je .setsymflag
     .mayBeNum:
-        cmp al, 48
-        jge .setnumflag
+    cmp al, 48
+    jge .setnumflag
     .clrnumflag:
     mov ax, word [TOKEN_FLAG]
     mov ch, 14
@@ -347,11 +348,204 @@ pop bx
 pop ax
 ret
 
-.onReturn:
-call dasm.endToken
-jmp .onToken
+.pass2:
+    pusha
+    mov ax, word [LINE_NUMBER]
+    call hprep
+    call hprint
+    mov al, byte ' '
+    call charInt
+    mov ax, word [LINE_NUMBER]
+    inc ax
+    mov word [LINE_NUMBER], ax
+    popa
+
+    mov si, di ;move tokens to si
+    .startReadToken:
+    mov di, tokenToAssemble
+    push di
+    .readToken:
+    cmp [si], byte 0
+    jz .pass2Done
+    cmp [si], byte 59
+    je .endofInst
+    cmp [si], byte ' '
+    je .endpass2Token
+    movsb
+    jmp .readToken
+
+    .endpass2Token:
+    cmp [si-1], byte ' '
+    je .emptyToken
+    movsb
+    pop di
+
+    push si
+    mov si, di
+    call sprint
+    pop si
+
+    call dasm.assembleToken
+    call .clearToken
+
+    jmp .startReadToken
+    .emptyToken:
+    call .clearToken
+    inc si
+    inc di
+    pop di
+    jmp .startReadToken
+
+    .endofInst:
+    call .handleInstFlag
+    pop di
+    jmp .startReadToken
+    .pass2Done:
+    cmp word [INST_FLAG], 0
+    jz .lastInstProcessed
+    call .handleInstFlag
+    .lastInstProcessed:
+    pop di
+    call newLine
+ret
+
+.handleInstFlag:
+    pusha
+    mov dh, byte [INST_FLAG+1]
+    call bprint
+    mov dh, byte [INST_FLAG]
+    call bprint
+    popa
+
+    pusha
+        mov al, byte ' '
+        call charInt
+        xor ah, ah
+        mov al, byte [OPCODE]
+        call hprep
+        call hprint
+    popa
+
+    call .clearToken
+    inc si
+    inc si
+
+    call newLine
+
+    pusha
+    mov ax, word [LINE_NUMBER]
+    call hprep
+    call hprint
+    mov al, byte ' '
+    call charInt
+    popa
+
+    mov ax, word [LINE_NUMBER]
+    inc ax
+    mov word [LINE_NUMBER], ax
+
+    mov word [INST_FLAG], 0
+
+    mov byte [OPCODE], 0
+ret
+
+.clearToken:
+    push ax
+    push di
+    mov al, 0x00
+    mov di, tokenToAssemble
+    mov cx, 32
+    rep stosb
+    pop di
+    pop ax
+ret
+
+.assembleToken:
+pusha
+    mov si, di
+    mov di, MNEM_0OP
+    call .useMnemStruct
+    cmp ax, 0
+    jz .Not0OP
+    or [INST_FLAG], byte 1
+    .Not0OP:
+popa
+pusha
+    mov si, di
+    mov di, MNEM_1OP
+    call .useMnemStruct
+    cmp ax, 0
+    jz .Not1OP
+    or [INST_FLAG], byte 2
+    .Not1OP:
+popa
+pusha
+    mov si, di
+    mov di, MNEM_2OP
+    call .useMnemStruct
+    cmp ax, 0
+    jz .Not2OP
+    or [INST_FLAG], byte 4
+    .Not2OP:
+popa
+
+bt word [INST_FLAG], 0
+jc .isInst
+jmp .notInst
+bt word [INST_FLAG], 1
+jc .isInst
+jmp .notInst
+bt word [INST_FLAG], 2
+jc .isInst
+    .isInst:
+    .notInst:
+ret
+
+.useMnemStruct:
+    .cmpMnemChar:
+    mov ah, byte [si]
+    mov al, byte [di]
+
+    cmp [si], al
+    jne .notequalChar
+
+    cmp [di], byte ' '
+    je .endOfMnem
+
+    inc si
+    inc di
+    jmp .cmpMnemChar
+    .notequalChar:
+        cmp [di], byte ' '
+        je .jmpToNextMnem
+        cmp [di], byte 0
+        jz .endOfMnemStruct
+    .getToMnemEnd:
+        inc di
+        cmp [di], byte ' '
+        je .jmpToNextMnem
+        cmp [di], byte 0
+        jz .endOfMnemStruct
+        jmp .getToMnemEnd
+    .jmpToNextMnem:
+        inc di
+        inc di
+        jmp .cmpMnemChar
+    .endOfMnem:
+    push ax
+    mov al, [di+1]
+    mov [OPCODE], al
+    pop ax
+
+    xor ax, ax
+    inc ax
+    ret
+    .endOfMnemStruct:
+    xor ax, ax
+ret
 
 TOKEN_FLAG dw 0000000000000000b
+TOKEN_ERR_FLAG dw 0
 INST_FLAG dw 0b
 LINE_NUMBER dw 0
 OPCODE db 00000000b
@@ -371,45 +565,45 @@ db 'retf ', 11001011b
 db 0
 MNEM_1OP:
 db 'inc ',01000000b ;byte [] 11111110 word [] 11111111 w/ modrm
-db 'dec '
-db 'call '
-db 'jmp '
-db 'push '
-db 'pop '
-db 'int '
-db 'not '
-db 'neg '
-db 'jo '
-db 'jno '
-db 'jb '
-db 'jnae '
-db 'jc '
-db 'jnb '
-db 'jae '
-db 'jnc '
-db 'jz '
-db 'je '
-db 'jnz '
-db 'jne '
-db 'jbe '
-db 'jna '
-db 'jnbe '
-db 'ja '
-db 'js '
-db 'jns '
-db 'jp '
-db 'jpe '
-db 'jnp '
-db 'jpo '
-db 'jl '
-db 'jnge '
-db 'jnl '
-db 'jge '
-db 'jle '
-db 'jng '
-db 'jnle '
-db 'jg '
-db 'daa '
+db 'dec ',1
+db 'call ',1
+db 'jmp ',1
+db 'push ',1
+db 'pop ',1
+db 'int ',1
+db 'not ',1
+db 'neg ',1
+db 'jo ',1
+db 'jno ',1
+db 'jb ',1
+db 'jnae ',1
+db 'jc ',1
+db 'jnb ',1
+db 'jae ',1
+db 'jnc ',1
+db 'jz ',1
+db 'je ',1
+db 'jnz ',1
+db 'jne ',1
+db 'jbe ',1
+db 'jna ',1
+db 'jnbe ',1
+db 'ja ',1
+db 'js ',1
+db 'jns ',1
+db 'jp ',1
+db 'jpe ',1
+db 'jnp ',1
+db 'jpo ',1
+db 'jl ',1
+db 'jnge ',1
+db 'jnl ',1
+db 'jge ',1
+db 'jle ',1
+db 'jng ',1
+db 'jnle ',1
+db 'jg ',1
+db 'daa ',1
 db 0
 MNEM_2OP:
 db 'mov ',10001000b
@@ -417,30 +611,30 @@ db 'xor ',00110000b
 db 'cmp ',00111000b
 db 'add ',00000000b
 db 'or ',00001000b
-db 'adc '
-db 'sbb '
+db 'adc ',1
+db 'sbb ',1
 db 'and ',00100000b
 db 'sub ',00101000b
-db 'das '
-db 'aaa '
-db 'aas '
-db 'ins '
-db 'insb '
-db 'insw '
-db 'outs '
-db 'outsb '
-db 'ouisw '
+db 'das ',1
+db 'aaa ',1
+db 'aas ',1
+db 'ins ',1
+db 'insb ',1
+db 'insw ',1
+db 'outs ',1
+db 'outsb ',1
+db 'ouisw ',1
 db 'test ',10000100b
-db 'xchg '
-db 'lea '
-db 'rol '
-db 'ror '
-db 'rcl '
-db 'rcr '
-db 'shl '
-db 'sal '
-db 'shr '
-db 'sar '
+db 'xchg ',1
+db 'lea ',1
+db 'rol ',1
+db 'ror ',1
+db 'rcl ',1
+db 'rcr ',1
+db 'shl ',1
+db 'sal ',1
+db 'shr ',1
+db 'sar ',1
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
@@ -457,7 +651,6 @@ dw 0100000001000000b
 dw 0010000001000000b
 dw 0001000001000000b
 
-;dw 0000110000000000b
 dw dasm.endToken
 dw 0000000000000000b
 dw 0001010000000001b ;is space prev char on token
@@ -470,17 +663,9 @@ dw 0010010000000001b ;is sym prev char on token
 dw 1000000100000001b ;is char prev sym on token
 dw 0010001000000001b ;is sym prev char on token
 dw 0100000100000001b ;is char prev sym on token
-
-dw dasm.onReturn
-dw 0000000000000000b
-
-;dw 0000110000000001b
-;dw 0000101000000001b
-;dw 0000100100000001b
-;dw 0000100010000001b
-
+dw 0010000100000001b
 dw dasm.nop
 dw 0000000000000000b
 dw 0001000000000000b
-;dw 0001001000000000b
+
 dw 1111111111111111b ;end of struct

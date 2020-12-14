@@ -54,11 +54,14 @@ TOKEN FLAG:
     -bit 3: null
     -bit 2: null
     -bit 1: null
-    -bit 0: on token 
+    -bit 0: on token
+TOKEN ERROR FLAG:
+    -bit 0: UNKNOWN SYMBOL
 
 INSTRUCTION FLAG:
--bit 10: OPERAND 2 LABEL
--bit 9: OPERAND 1 LABEL
+-bit 11: POSSIBLE PROC/DEFINITIVE LABEL
+-bit 10: OPERAND 2 POSSIBLE LABEL
+-bit 9: OPERAND 1 POSSIBLE LABEL
 -bit 8: OPERAND 2 IMMEDIATE
 -bit 7: OPERAND 1 IMMEDIATE
 -bit 6: OPERAND 2 TYPE (REG/MEM)

@@ -19,26 +19,33 @@ mov es, ax
 xor ax, ax
 push ax
 mov word [TOKEN_FLAG], ax
+
+mov si, asmFile
+call sprint
+call newLine
+
 mov si, asmFile
 push si
 mov di, asmTokens
 push di
+
 ;mov [di], byte ' '
 ;inc di
+
 call dasm.tokenizeCharLoop
 pop di
 pop si
-mov si, di ;prep token scan
-
-pop es
-pop ds
-;print output
-        mov si, asmFile
-        call sprint
-        call newLine
+        ;mov si, asmFile
+        ;call sprint
+        ;call newLine
         mov si, asmTokens
         call sprint
         call newLine
+
+call dasm.pass2
+
+pop es
+pop ds
 
 mov si, OSNAME
 call sprint
@@ -244,10 +251,12 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'xor ax     ,ax',0x0D,'mov ds, ax',0x0D,'jmp 0x7c00 ',0x0D,' mov ax , word[mem]',0x0D,' mov ax, word [0x0800]',0x0D,'inc ax',0x0d,'jmp ds: 0x0000', 0x00
+    db 'mov ax, bx',0x0D,'xor byte [cx], 0x0010',0x0D,'inc ax',0x0D,'ret',0x0D,'inc ',0x0D,0x00
 cmdTableOffset equ 0x06
 asmTokens:
     times 500 db 0
+tokenToAssemble:
+    times 32 db 0
 cmdTable:
     db 'reg', 0
     dw 0
