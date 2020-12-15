@@ -595,8 +595,12 @@ ret
     call .useRegStruct
     cmp ax, 0
     jg .endIsMemToken
-
-    jmp .notMemRegister
+    popa
+    xor ax, ax
+    call .checkImm
+    cmp ax, 0
+ret
+    ;jmp .notMemRegister
     .endIsMemToken:
 popa
 ret
@@ -637,7 +641,47 @@ ret
     ret
     .NotReg:
 popa
+    xor ax, ax
+    inc ax
+    call .checkImm
 ret
+;mov ax 0 - mem, 1 - not mem
+.checkImm:
+pusha
+pushf
+    cld
+    mov si, di
+    mov di, HEX_PREFIX
+    cmpsb
+    jne .endcheckImm0
+    cmpsb
+    jne .endcheckImm0
+    cmp ax, 0
+    jz .immMem
+    add byte [OPERANDS], 1
+    .immMem:
+    cmp byte [OPERANDS], 1
+    je .SetOp1Imm
+    jg .SetOp2Imm
+    .SetOp1Imm:
+    or word [INST_FLAG], 10000000b
+    xor ax, ax
+    inc ax
+    jmp .endcheckImm1
+    .SetOp2Imm:
+    or word [INST_FLAG], 100000000b
+    xor ax, ax
+    inc ax
+    .endcheckImm1:
+popf
+popa
+ret
+    .endcheckImm0:
+    xor ax, ax
+popf
+popa
+ret
+
 
 .setRegOpSize:
 pusha
@@ -746,15 +790,16 @@ ret
     xor ax, ax
 ret
 
-TOKEN_FLAG dw 0000000000000000b
+TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
 INST_FLAG dw 0b
 LINE_NUMBER dw 0
-OPCODE db 00000000b
+OPCODE db 0
 OPERANDS db 0
 REG db 0
 RM db 0
 MODRM db 0
+IMMEDIATE dw 0
 DUMP db 0
 HEX_PREFIX db '0x',0
 MNEM_0OP:
@@ -904,4 +949,3 @@ dw 0000000000000000b
 dw 0001000000000000b
 
 dw 1111111111111111b ;end of struct
-
