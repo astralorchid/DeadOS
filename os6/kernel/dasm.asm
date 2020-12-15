@@ -586,15 +586,18 @@ ret
     or word [INST_FLAG], word 1000000b
     .getOperandType:
     add [OPERANDS], byte 1
-
+    mov al, [RM]
+    mov [REG], al
     pusha
     mov si, di
     mov di, REGISTERS
     mov bx, RM
     call .useRegStruct
     cmp ax, 0
-    jz .notMemRegister
+    jg .endIsMemToken
 
+    jmp .notMemRegister
+    .endIsMemToken:
 popa
 ret
     .notMemRegister:
@@ -606,7 +609,7 @@ ret
     cmp byte [OPERANDS], 1
     je .RMUsed
 
-        pusha
+    pusha
     mov si, di
     mov di, REGISTERS
 
@@ -615,8 +618,8 @@ ret
     cmp ax, 0
     jz .NotReg
     add byte [OPERANDS], 1
-
 popa
+    call .setRegOpSize
 ret
     .RMUsed:
 
@@ -629,50 +632,68 @@ ret
     cmp ax, 0
     jz .NotReg
     add byte [OPERANDS], 1
-
+    popa
+    call .setRegOpSize
+    ret
     .NotReg:
+popa
+ret
+
+.setRegOpSize:
+pusha
+    mov si, di
+    mov di, WORD_REG
+
+    mov bx, DUMP
+    call .useRegStruct
+    cmp ax, 0
+    jz .NotWordReg
+    cmp byte [OPERANDS], 1
+    je .SetOp1Size
+    jg .SetOp2Size
+    jl .NotWordReg
+    .SetOp1Size:
+    or word [INST_FLAG], word 1000b
+    jmp .NotWordReg
+    .SetOp2Size:
+    or word [INST_FLAG], word 10000b
+    .NotWordReg:
 popa
 ret
 
 
 .useRegStruct:
+    mov dx, si
     .cmpRegChar:
 
     mov ah, byte [si]
     mov al, byte [di]
 
     cmp ah, al
-    jne .notequChar
-
-    cmp al, byte ' '
+    jne .gotoNextReg
+    cmp [di], byte ' '
     je .endOfReg
-
+    cmp [di], byte 0
+    jz .endOfRegStruct
     inc si
     inc di
     jmp .cmpRegChar
-    .notequChar:
+    .gotoNextReg:
     cmp [di], byte ' '
-    je .jmpToNextReg
+    je .jumpOver
     cmp [di], byte 0
-    jz .endOfRegStruct
-    jmp .jmpToNextReg
-    .getToRegEnd:
+    je .endOfRegStruct
     inc di
-    cmp [di], byte ' '
-    je .jmpToNextReg
-    cmp [di], byte 0
-    jz .endOfRegStruct
-    jmp .getToRegEnd
-    .jmpToNextReg:
+    jmp .gotoNextReg
+    .jumpOver:
     inc di
     inc di
+    mov si, dx
     jmp .cmpRegChar
     .endOfReg:
-    push ax
     mov al, [di+1]
     dec al
-    mov [bx], al ;used to be [OPCODE]
-    pop ax
+    mov [bx], al
     xor ax, ax
     inc ax
 ret
@@ -734,6 +755,8 @@ OPERANDS db 0
 REG db 0
 RM db 0
 MODRM db 0
+DUMP db 0
+HEX_PREFIX db '0x',0
 MNEM_0OP:
 db 'nop ',  10010000b
 db 'pusha ',01100000b
@@ -838,6 +861,16 @@ db 'si ', 00000111b
 db 'bh ', 00001000b
 db 'di ', 00001000b
 db 0
+WORD_REG:
+db 'ax ', 00000001b
+db 'cx ', 00000010b
+db 'dx ', 00000011b
+db 'bx ', 00000100b
+db 'sp ', 00000101b
+db 'bp ', 00000110b
+db 'si ', 00000111b
+db 'di ', 00001000b
+db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
@@ -871,3 +904,4 @@ dw 0000000000000000b
 dw 0001000000000000b
 
 dw 1111111111111111b ;end of struct
+
