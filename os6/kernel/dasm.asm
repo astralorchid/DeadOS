@@ -515,6 +515,7 @@ pusha
     mov di, MNEM_0OP
 
     mov bx, OPCODE
+    xor ax, ax
     call .useMnemStruct
 
     cmp ax, 0
@@ -527,6 +528,7 @@ pusha
     mov di, MNEM_1OP
 
     mov bx, OPCODE
+    xor ax, ax
     call .useMnemStruct
     cmp ax, 0
     jz .Not1OP
@@ -538,6 +540,7 @@ pusha
     mov di, MNEM_2OP
 
     mov bx, OPCODE
+    xor ax, ax
     call .useMnemStruct
     cmp ax, 0
     jz .Not2OP
@@ -742,53 +745,58 @@ ret
     inc ax
 ret
     .endOfRegStruct:
-
     xor ax, ax
 ret
 
+;ax - 0-#opcodes
+;dx - 0 - start from mnem, 1 - start from base opcode
 .useMnemStruct:
+    push ax
+    cmp dx, word 0
+    jz .findByMnem
+    .findByOpcode:
+    ;cmp word [OPCODE]
+    .findByMnem:
+    mov dx, si
     .cmpMnemChar:
-
     mov ah, byte [si]
     mov al, byte [di]
-
     cmp ah, al
-    jne .notequalChar
-
-    cmp al, byte ' '
+    jne .gotoNextMnem
+    cmp [di], byte ' '
     je .endOfMnem
-
+    cmp [di], byte 0
+    jz .endOfMnemStruct
     inc si
     inc di
     jmp .cmpMnemChar
-    .notequalChar:
+    .gotoNextMnem:
     cmp [di], byte ' '
-    je .jmpToNextMnem
+    je .jumpOverMnem
     cmp [di], byte 0
-    jz .endOfMnemStruct
-    ;jmp .jmpToNextMnem
-    .getToMnemEnd:
+    je .endOfMnemStruct
     inc di
-    cmp [di], byte ' '
-    je .jmpToNextMnem
-    cmp [di], byte 0
-    jz .endOfMnemStruct
-    jmp .getToMnemEnd
-    .jmpToNextMnem:
+    jmp .gotoNextMnem
+    .jumpOverMnem:
     inc di
     inc di
+    inc di ;jump over value offsets
+    mov si, dx
     jmp .cmpMnemChar
     .endOfMnem:
-    push ax
-    mov al, [di+1]
-    mov [bx], al ;used to be [OPCODE]
     pop ax
+    add di, ax
+    mov al, [di+1]
+    ;dec al
+    mov [bx], al
     xor ax, ax
     inc ax
 ret
     .endOfMnemStruct:
+    pop ax
     xor ax, ax
 ret
+
 
 TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
@@ -803,92 +811,93 @@ IMMEDIATE dw 0
 DUMP db 0
 HEX_PREFIX db '0x',0
 MNEM_0OP:
-db 'nop ',  10010000b
-db 'pusha ',01100000b
-db 'popa ', 01100001b
-db 'cmpsb ',10100110b
-db 'cmpsw ',10100111b
-db 'movsb ',10100100b
-db 'movsw ',10100101b
-db 'scasb ',10101110b
-db 'scasw ',10101111b
-db 'ret ',  11000011b
-db 'retf ', 11001011b
+db 'nop ',  10010000b,1
+db 'pusha ',01100000b,1
+db 'popa ', 01100001b,1
+db 'cmpsb ',10100110b,1
+db 'cmpsw ',10100111b,1
+db 'movsb ',10100100b,1
+db 'movsw ',10100101b,1
+db 'scasb ',10101110b,1
+db 'scasw ',10101111b,1
+db 'ret ',  11000011b,1
+db 'retf ', 11001011b,1
 db 0
 MNEM_1OP:
-db 'inc ',01000000b ;byte [] 11111110 word [] 11111111 w/ modrm
-db 'dec ',1
-db 'call ',1
-db 'jmp ',1
-db 'push ',1
-db 'pop ',1
-db 'int ',1
-db 'not ',1
-db 'neg ',1
-db 'jo ',1
-db 'jno ',1
-db 'jb ',1
-db 'jnae ',1
-db 'jc ',1
-db 'jnb ',1
-db 'jae ',1
-db 'jnc ',1
-db 'jz ',1
-db 'je ',1
-db 'jnz ',1
-db 'jne ',1
-db 'jbe ',1
-db 'jna ',1
-db 'jnbe ',1
-db 'ja ',1
-db 'js ',1
-db 'jns ',1
-db 'jp ',1
-db 'jpe ',1
-db 'jnp ',1
-db 'jpo ',1
-db 'jl ',1
-db 'jnge ',1
-db 'jnl ',1
-db 'jge ',1
-db 'jle ',1
-db 'jng ',1
-db 'jnle ',1
-db 'jg ',1
-db 'daa ',1
+db 'inc ',01000000b,1 ;byte [] 11111110 word [] 11111111 w/ modrm
+db 'dec ',1,1
+db 'call ',1,1
+db 'jmp ',11101001b,1
+db 'push ',1,1
+db 'pop ',1,1
+db 'int ',1,1
+db 'not ',1,1
+db 'neg ',1,1
+db 'jo ',1,1
+db 'jno ',1,1
+db 'jb ',1,1
+db 'jnae ',1,1
+db 'jc ',1,1
+db 'jnb ',1,1
+db 'jae ',1,1
+db 'jnc ',1,1
+db 'jz ',1,1
+db 'je ',1,1
+db 'jnz ',1,1
+db 'jne ',1,1
+db 'jbe ',1,1
+db 'jna ',1,1
+db 'jnbe ',1,1
+db 'ja ',1,1
+db 'js ',1,1
+db 'jns ',1,1
+db 'jp ',1,1
+db 'jpe ',1,1
+db 'jnp ',1,1
+db 'jpo ',1,1
+db 'jl ',1,1
+db 'jnge ',1,1
+db 'jnl ',1,1
+db 'jge ',1,1
+db 'jle ',1,1
+db 'jng ',1,1
+db 'jnle ',1,1
+db 'jg ',1,1
+db 'daa ',1,1
 db 0
 MNEM_2OP:
-db 'mov ',10001000b
-db 'xor ',00110000b
-db 'cmp ',00111000b
-db 'add ',00000000b
-db 'or ',00001000b
-db 'adc ',1
-db 'sbb ',1
-db 'and ',00100000b
-db 'sub ',00101000b
-db 'das ',1
-db 'aaa ',1
-db 'aas ',1
-db 'ins ',1
-db 'insb ',1
-db 'insw ',1
-db 'outs ',1
-db 'outsb ',1
-db 'ouisw ',1
-db 'test ',10000100b
-db 'xchg ',1
-db 'lea ',1
-db 'rol ',1
-db 'ror ',1
-db 'rcl ',1
-db 'rcr ',1
-db 'shl ',1
-db 'sal ',1
-db 'shr ',1
-db 'sar ',1
+db 'mov ',10001000b,10001000b
+db 'xor ',00110000b,00110000b
+db 'cmp ',00111000b,00111000b
+db 'add ',00000000b,00000000b
+db 'or ',00001000b,00001000b
+db 'adc ',1,1
+db 'sbb ',1,1
+db 'and ',00100000b,00100000b
+db 'sub ',00101000b,00101000b
+db 'das ',1,1
+db 'aaa ',1,1
+db 'aas ',1,1
+db 'ins ',1,1
+db 'insb ',1,1
+db 'insw ',1,1
+db 'outs ',1,1
+db 'outsb ',1,1
+db 'ouisw ',1,1
+db 'test ',10000100b,10000100b
+db 'xchg ',1,1
+db 'lea ',1,1
+db 'rol ',1,1
+db 'ror ',1,1
+db 'rcl ',1,1
+db 'rcr ',1,1
+db 'shl ',1,1
+db 'sal ',1,1
+db 'shr ',1,1
+db 'sar ',1,1
 db 0
 REGISTERS:
+;all +1 because yeah
 db 'al ', 00000001b
 db 'ax ', 00000001b
 db 'cl ', 00000010b
@@ -915,6 +924,8 @@ db 'sp ', 00000101b
 db 'bp ', 00000110b
 db 'si ', 00000111b
 db 'di ', 00001000b
+db 0
+MNEM_IMM:
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
