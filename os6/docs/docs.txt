@@ -85,6 +85,8 @@ TFP: token flag procedure
 PDT: program descriptor Table
 
 to-do list:
+-immediate hex to binary
+-immediate handler
 -lexical tokenizer
 -program backspace
 -pmalloc error handler

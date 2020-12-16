@@ -670,6 +670,14 @@ pushf
     or word [INST_FLAG], 10000000b
     xor ax, ax
     inc ax
+
+    ;mov si, di
+    ;mov di, MNEM_2OP ;include all mnem structs
+
+    ;mov bx, OPCODE
+    ;xor ax, ax
+    ;call .useMnemStruct
+
     jmp .endcheckImm1
     .SetOp2Imm:
     or word [INST_FLAG], 100000000b
@@ -749,13 +757,43 @@ ret
 ret
 
 ;ax - 0-#opcodes
-;dx - 0 - start from mnem, 1 - start from base opcode
+;dh - 0 - start from mnem, 1 - start from base opcode
+;dl - offset from opcode to return
 .useMnemStruct:
     push ax
-    cmp dx, word 0
+    cmp dh, byte 0
     jz .findByMnem
-    .findByOpcode:
-    ;cmp word [OPCODE]
+
+.findByOpcode:
+    mov al, byte [OPCODE]
+    .findMnemEnd:
+    cmp [di], byte ' '
+    je .getOpcode
+    inc di
+    jmp .findMnemEnd
+    .getOpcode:
+    inc di
+    cmp al, [di]
+    je .foundOpcode
+    add di, word NUM_DATA
+    dec di
+    cmp [di], byte 0
+    jz .foundNoOpcode
+    jmp .findMnemEnd
+    .foundOpcode:
+    xor dh, dh
+    add di, word dx ;extended dl
+    mov ah, byte [di]
+    mov [bx], ah ;update base opcode
+    pop ax
+    xor ax, ax
+    inc ax ;return 1
+ret
+    .foundNoOpcode:
+    pop ax
+    xor ax, ax ;return 0
+ret
+
     .findByMnem:
     mov dx, si
     .cmpMnemChar:
@@ -774,13 +812,12 @@ ret
     cmp [di], byte ' '
     je .jumpOverMnem
     cmp [di], byte 0
-    je .endOfMnemStruct
+    jz .endOfMnemStruct
     inc di
     jmp .gotoNextMnem
     .jumpOverMnem:
+    add di, word NUM_DATA
     inc di
-    inc di
-    inc di ;jump over value offsets
     mov si, dx
     jmp .cmpMnemChar
     .endOfMnem:
@@ -810,6 +847,7 @@ MODRM db 0
 IMMEDIATE dw 0
 DUMP db 0
 HEX_PREFIX db '0x',0
+NUM_DATA equ 2
 MNEM_0OP:
 db 'nop ',  10010000b,1
 db 'pusha ',01100000b,1

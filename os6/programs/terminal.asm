@@ -243,7 +243,7 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'mov ax, word [0x1337]',0x0D,'mov ax, 0x10',0x0D,'inc cx',0x0D,'xor [si], byte dl',0x0D,'push cx',0x0D,'jmp 0x7e00',0x0D, 0x00
+    db 'mov ax, word [0x1337]',0x0D,0x00
 cmdTableOffset equ 0x06
 asmTokens:
     times 500 db 0
