@@ -441,12 +441,12 @@ call .testOpenMemErr
     call charInt
     popa
 
-    pusha
-    mov dh, byte [INST_ERR_FLAG+1]
-    call bprint
-    mov dh, byte [INST_ERR_FLAG]
-    call bprint
-    popa
+    ;pusha
+    ;mov dh, byte [INST_ERR_FLAG+1]
+    ;call bprint
+    ;mov dh, byte [INST_ERR_FLAG]
+    ;call bprint
+    ;popa
 
     pusha
         mov al, byte ' '
@@ -512,6 +512,7 @@ bt word [INST_FLAG], 2
 jc .hasInst
 jmp .noInst
 
+;dx - 0 - no ret, 1 - ret
     .noInst:
 pusha
     mov si, di
@@ -525,6 +526,8 @@ pusha
     cmp ax, 0
     jz .Not0OP
     or [INST_FLAG], byte 1
+    popa
+    ret
     .Not0OP:
 popa
 pusha
@@ -539,6 +542,8 @@ pusha
     cmp ax, 0
     jz .Not1OP
     or [INST_FLAG], byte 2
+    popa
+    ret
     .Not1OP:
 popa
 pusha
@@ -553,6 +558,8 @@ pusha
     cmp ax, 0
     jz .Not2OP
     or [INST_FLAG], byte 4
+    popa
+    ret
     .Not2OP:
 popa
 
@@ -667,7 +674,7 @@ ret
     mov bx, DUMP
     call .useRegStruct
     cmp ax, 0
-    jz .NotSizeDef
+    jz .PosLbl ;.NotSizeDef
     cmp [OPERANDS], byte 1
     jl .SizeModOp1
     shl byte [DUMP], 6
@@ -688,6 +695,13 @@ ret
     .PosLbl:
     popa
     .PosImmLbl:
+    bt word [INST_FLAG], 1
+    jc .OpLbl
+    bt word [INST_FLAG], 2
+    jc .OpLbl
+    or word [INST_FLAG], 100000000000b
+ret
+    .OpLbl:
     mov al, byte '*'
     call charInt
 ret
