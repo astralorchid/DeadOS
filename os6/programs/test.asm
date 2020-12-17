@@ -1,1 +1,3 @@
+;mov byte [bx], 0xFFFF
+;db 0xC6,00000111b,0xFF
 test

@@ -57,6 +57,7 @@ TOKEN FLAG:
     -bit 0: on token
 
 INSTRUCTION FLAG:
+-bit 15: NULL
 -bit 14: OPERAND 2 SIZE MOD
 -bit 13: OPERAND 1 SIZE MOD
 -bit 12: OPEN MEMORY OPERAND
@@ -85,12 +86,14 @@ TFP: token flag procedure
 PDT: program descriptor Table
 
 to-do list:
--immediate hex to binary
+-immediate ascii hex to raw binary
 -immediate handler
 -lexical tokenizer
 -program backspace
 -pmalloc error handler
 -turn kernel_data into text gfx library for TERMINAL
+
+-build call stacks to optimize
 
 REMINDERS:
 -Remove all spaces, tabs, and returns from a file before starting tokenzier

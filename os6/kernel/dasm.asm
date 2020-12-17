@@ -498,7 +498,10 @@ ret
 ret
 
 .assembleToken:
-
+cmp [di], byte ','
+jne .startassembleToken
+ret
+.startassembleToken:
 bt word [INST_FLAG], 0
 jc .hasInst
 jmp .noInst
@@ -516,6 +519,7 @@ pusha
 
     mov bx, OPCODE
     xor ax, ax
+    xor dh, dh
     call .useMnemStruct
 
     cmp ax, 0
@@ -529,7 +533,9 @@ pusha
 
     mov bx, OPCODE
     xor ax, ax
+    xor dh, dh
     call .useMnemStruct
+
     cmp ax, 0
     jz .Not1OP
     or [INST_FLAG], byte 2
@@ -541,7 +547,9 @@ pusha
 
     mov bx, OPCODE
     xor ax, ax
+    xor dh, dh
     call .useMnemStruct
+
     cmp ax, 0
     jz .Not2OP
     or [INST_FLAG], byte 4
@@ -602,6 +610,7 @@ ret
     xor ax, ax
     call .checkImm
     cmp ax, 0
+    jz .PosImmLbl
 ret
     ;jmp .notMemRegister
     .endIsMemToken:
@@ -647,7 +656,42 @@ popa
     xor ax, ax
     inc ax
     call .checkImm
+    cmp ax, 0
+    jz .NotImm
 ret
+    .NotImm:
+    pusha
+    mov si, di
+    mov di, SIZE_DEF
+
+    mov bx, DUMP
+    call .useRegStruct
+    cmp ax, 0
+    jz .NotSizeDef
+    cmp [OPERANDS], byte 1
+    jl .SizeModOp1
+    shl byte [DUMP], 6
+    jmp .xorToInstFlag
+    .SizeModOp1:
+    shl byte [DUMP], 5
+    .xorToInstFlag:
+    mov ah, byte [DUMP]
+    xor al, al
+    or word [INST_FLAG], ax
+    popa
+ret
+    .NotSizeDef:
+    cmp [OPERANDS], byte 1
+    jl .PosLbl
+    popa
+ret
+    .PosLbl:
+    popa
+    .PosImmLbl:
+    mov al, byte '*'
+    call charInt
+ret
+
 ;mov ax 0 - mem, 1 - not mem
 .checkImm:
 pusha
@@ -667,30 +711,54 @@ pushf
     je .SetOp1Imm
     jg .SetOp2Imm
     .SetOp1Imm:
+
+    ; call .GetImmOpcode
+
     or word [INST_FLAG], 10000000b
-    xor ax, ax
-    inc ax
 
-    ;mov si, di
-    ;mov di, MNEM_2OP ;include all mnem structs
-
-    ;mov bx, OPCODE
-    ;xor ax, ax
-    ;call .useMnemStruct
 
     jmp .endcheckImm1
     .SetOp2Imm:
+
+    call .GetImmOpcode
+
     or word [INST_FLAG], 100000000b
-    xor ax, ax
-    inc ax
     .endcheckImm1:
 popf
 popa
+    xor ax, ax
+    inc ax
 ret
     .endcheckImm0:
-    xor ax, ax
 popf
 popa
+    xor ax, ax
+ret
+;ax - mnem struct
+.GetImmOpcode:
+    pusha
+    mov si, di
+    mov di, MNEM_0OP ;include all mnem structs
+    mov bx, OPCODE
+    mov dh, byte 1
+    mov dl, byte 1
+    xor ax, ax
+    call .useMnemStruct
+    mov si, di
+    mov di, MNEM_1OP ;include all mnem structs
+    mov bx, OPCODE
+    mov dh, byte 1
+    mov dl, byte 1
+    xor ax, ax
+    call .useMnemStruct
+    mov si, di
+    mov di, MNEM_2OP ;include all mnem structs
+    mov bx, OPCODE
+    mov dh, byte 1
+    mov dl, byte 1
+    xor ax, ax
+    call .useMnemStruct
+    popa
 ret
 
 
@@ -904,7 +972,8 @@ db 'jg ',1,1
 db 'daa ',1,1
 db 0
 MNEM_2OP:
-db 'mov ',10001000b,10001000b
+;
+db 'mov ',10001000b,11000110b
 db 'xor ',00110000b,00110000b
 db 'cmp ',00111000b,00111000b
 db 'add ',00000000b,00000000b
@@ -963,8 +1032,9 @@ db 'bp ', 00000110b
 db 'si ', 00000111b
 db 'di ', 00001000b
 db 0
-MNEM_IMM:
-db 0
+SIZE_DEF:
+db 'byte ', 1
+db 'word ', 2
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
