@@ -258,7 +258,7 @@ asmFile:
     db 'SaveMem db 0x0', 0x0D, 0x00
 cmdTableOffset equ 0x06
 asmTokens:
-    times 500 db 0
+    times 1000 db 0
 tokenToAssemble:
     times 32 db 0
 cmdTable:

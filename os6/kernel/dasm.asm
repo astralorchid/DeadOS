@@ -46,7 +46,7 @@ je .endasmFile
     .nowOnToken: ;new = 1
     cmp cx, 1
     je .stillOnToken
-
+    ;jmp .tokenizeCharLoop ;59 issue
     .stillOnToken:
 
     push ax ;just for charint
@@ -63,7 +63,6 @@ je .endasmFile
         mov [di], byte 59
         inc di
         mov [di], byte ' '
-
         .changeR:
     
         ;push ax
@@ -929,93 +928,93 @@ MODRM db 0
 IMMEDIATE dw 0
 DUMP db 0
 HEX_PREFIX db '0x',0
-NUM_DATA equ 2
+NUM_DATA equ 3
 MNEM_0OP:
-db 'nop ',  10010000b,1
-db 'pusha ',01100000b,1
-db 'popa ', 01100001b,1
-db 'cmpsb ',10100110b,1
-db 'cmpsw ',10100111b,1
-db 'movsb ',10100100b,1
-db 'movsw ',10100101b,1
-db 'scasb ',10101110b,1
-db 'scasw ',10101111b,1
-db 'ret ',  11000011b,1
-db 'retf ', 11001011b,1
+db 'nop ',  10010000b,1,1
+db 'pusha ',01100000b,1,1
+db 'popa ', 01100001b,1,1
+db 'cmpsb ',10100110b,1,1
+db 'cmpsw ',10100111b,1,1
+db 'movsb ',10100100b,1,1
+db 'movsw ',10100101b,1,1
+db 'scasb ',10101110b,1,1
+db 'scasw ',10101111b,1,1
+db 'ret ',  11000011b,1,1
+db 'retf ', 11001011b,1,1
 db 0
 MNEM_1OP:
-db 'inc ',01000000b,1 ;byte [] 11111110 word [] 11111111 w/ modrm
-db 'dec ',1,1
-db 'call ',1,1
-db 'jmp ',11101001b,1
-db 'push ',1,1
-db 'pop ',1,1
-db 'int ',1,1
-db 'not ',1,1
-db 'neg ',1,1
-db 'jo ',1,1
-db 'jno ',1,1
-db 'jb ',1,1
-db 'jnae ',1,1
-db 'jc ',1,1
-db 'jnb ',1,1
-db 'jae ',1,1
-db 'jnc ',1,1
-db 'jz ',1,1
-db 'je ',1,1
-db 'jnz ',1,1
-db 'jne ',1,1
-db 'jbe ',1,1
-db 'jna ',1,1
-db 'jnbe ',1,1
-db 'ja ',1,1
-db 'js ',1,1
-db 'jns ',1,1
-db 'jp ',1,1
-db 'jpe ',1,1
-db 'jnp ',1,1
-db 'jpo ',1,1
-db 'jl ',1,1
-db 'jnge ',1,1
-db 'jnl ',1,1
-db 'jge ',1,1
-db 'jle ',1,1
-db 'jng ',1,1
-db 'jnle ',1,1
-db 'jg ',1,1
-db 'daa ',1,1
+db 'inc ',01000000b,1,1 ;byte [] 11111110 word [] 11111111 w/ modrm
+db 'dec ',01001000b,1,1
+db 'call ',11111111b,11101000b,10b
+db 'jmp ',11101001b,1,1
+db 'push ',01010000b,1,1
+db 'pop ',1,1,1
+db 'int ',1,1,1
+db 'not ',1,1,1
+db 'neg ',1,1,1
+db 'jo ',1,1,1
+db 'jno ',1,1,1
+db 'jb ',1,1,1
+db 'jnae ',1,1,1
+db 'jc ',1,1,1
+db 'jnb ',1,1,1
+db 'jae ',1,1,1
+db 'jnc ',1,1,1
+db 'jz ',1,1,1
+db 'je ',1,1,1
+db 'jnz ',1,1,1
+db 'jne ',1,1,1
+db 'jbe ',1,1,1
+db 'jna ',1,1,1
+db 'jnbe ',1,1,1
+db 'ja ',1,1,1
+db 'js ',1,1,1
+db 'jns ',1,1,1
+db 'jp ',1,1,1
+db 'jpe ',1,1,1
+db 'jnp ',1,1,1
+db 'jpo ',1,1,1
+db 'jl ',1,1,1
+db 'jnge ',1,1,1
+db 'jnl ',1,1,1
+db 'jge ',1,1,1
+db 'jle ',1,1,1
+db 'jng ',1,1,1
+db 'jnle ',1,1,1
+db 'jg ',1,1,1
+db 'daa ',1,1,1
 db 0
 MNEM_2OP:
-;
-db 'mov ',10001000b,11000110b
-db 'xor ',00110000b,00110000b
-db 'cmp ',00111000b,00111000b
-db 'add ',00000000b,00000000b
-db 'or ',00001000b,00001000b
-db 'adc ',1,1
-db 'sbb ',1,1
-db 'and ',00100000b,00100000b
-db 'sub ',00101000b,00101000b
-db 'das ',1,1
-db 'aaa ',1,1
-db 'aas ',1,1
-db 'ins ',1,1
-db 'insb ',1,1
-db 'insw ',1,1
-db 'outs ',1,1
-db 'outsb ',1,1
-db 'ouisw ',1,1
-db 'test ',10000100b,10000100b
-db 'xchg ',1,1
-db 'lea ',1,1
-db 'rol ',1,1
-db 'ror ',1,1
-db 'rcl ',1,1
-db 'rcr ',1,1
-db 'shl ',1,1
-db 'sal ',1,1
-db 'shr ',1,1
-db 'sar ',1,1
+;opcode, immediate opcode, immediate opcode extension
+db 'mov ',10001000b,11000110b,000b
+db 'xor ',00110000b,10000000b,110b
+db 'cmp ',00111000b,10000000b,111b
+db 'add ',00000000b,10000000b,000b
+db 'or ',00001000b,10000000b,001b
+db 'adc ',00010000b,10000000b,010b
+db 'sbb ',00011000b,10000000b,011b
+db 'and ',00100000b,10000000b,100b
+db 'sub ',00101000b,10000000b,101b
+db 'das ',1,1,1
+db 'aaa ',1,1,1
+db 'aas ',1,1,1
+db 'ins ',1,1,1
+db 'insb ',1,1,1
+db 'insw ',1,1,1
+db 'outs ',1,1,1
+db 'outsb ',1,1,1
+db 'ouisw ',1,1,1
+db 'test ',10000100b,10000100b,1
+db 'xchg ',1,1,1
+db 'lea ',1,1,1
+db 'rol ',1,11000000b,000b
+db 'ror ',1,11000000b,001b
+db 'rcl ',1,11000000b,010b
+db 'rcr ',1,11000000b,011b
+db 'shl ',1,11000000b,100b
+db 'sal ',1,11000000b,110b
+db 'shr ',1,11000000b,101b
+db 'sar ',1,11000000b,111b
 db 0
 REGISTERS:
 ;all +1 because yeah
@@ -1077,6 +1076,7 @@ dw 1000000100000001b ;is char prev sym on token
 dw 0010001000000001b ;is sym prev char on token
 dw 0100000100000001b ;is char prev sym on token
 dw 0010000100000001b
+
 dw dasm.nop
 dw 0000000000000000b
 dw 0001000000000000b

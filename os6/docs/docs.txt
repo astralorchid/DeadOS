@@ -88,7 +88,6 @@ PDT: program descriptor Table
 to-do list:
 -immediate ascii hex to raw binary
 -immediate handler
--lexical tokenizer
 -program backspace
 -pmalloc error handler
 -turn kernel_data into text gfx library for TERMINAL
