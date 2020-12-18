@@ -41,7 +41,15 @@ pop si
         call newLine
 
 call dasm.pass2
+cmp ax, 0
+jz .nopass2Err
 
+    mov dh, byte [INST_ERR_FLAG+1]
+    call bprint
+    mov dh, byte [INST_ERR_FLAG]
+    call bprint
+
+.nopass2Err:
 pop es
 pop ds
 
@@ -244,12 +252,12 @@ InputLen dw 0
 %include '../kernel/dasm.asm'
 asmFile:
     db 'xor dx, SaveMem ', 0x0D
-    db 'add    byte [SaveMem], MyLabel ', 0x0D
+    db 'add    byte ax, bx ', 0x0D
     db 'mov cx     , 0x1337 ', 0x0D
-    db 'mov byte [ bx ] , dh', 0x0D, 0x0D
+    db 'mov byte ax , bx', 0x0D, 0x0D
     db 'inc bx',     0x0D
     db 'mov word[bx ]0xFFFF', 0x0D
-    db '  mov cl byte [ 0x83DF  ]', 0x0D
+    db '  mov MyLbl, Hello', 0x0D
     db 'or word [si] bp', 0x0D,0x0D, ' ', 
     db 'call TestProcLabel', 0x0D
     db 'TestProcLabel:', 0x0D
@@ -261,6 +269,12 @@ asmTokens:
     times 1000 db 0
 tokenToAssemble:
     times 32 db 0
+
+bin:
+    times 100 db 0
+LblTable:
+    times 100 db 0
+
 cmdTable:
     db 'reg', 0
     dw 0

@@ -384,6 +384,8 @@ ret
     .endofInst:
     call .handleInstFlag
     pop di
+    cmp ax, 0
+    jnz .retWithErr
     jmp .startReadToken
     .pass2Done:
     cmp word [INST_FLAG], 0
@@ -392,6 +394,7 @@ ret
     .lastInstProcessed:
     pop di
     call newLine
+    xor ax, ax
 ret
 
 .testDualMemErr:
@@ -423,11 +426,39 @@ ret
         jnc .NoSetOpenMemError
         or word [INST_ERR_FLAG], word 10b
     .NoSetOpenMemError:
-ret
+    ret
+    
+.testDualImmOperands:
+    push ax
+    push bx
+    mov ax, word [INST_FLAG]
+    mov bx, ax
+    or ax, 110000000b
+    xor ax, bx
+    jnz .popleave
+    mov ax, word [INST_FLAG]
+    shr ax, 7
+    shl ax, 14
+    shr ax, 7
+    and ax, 110000000b
+    jz .popleave
+    .DualImmErr:
+    bt word [INST_FLAG], 5
+    jc .popleave
+    bt word [INST_FLAG], 6
+    jc .popleave
+    or word [INST_ERR_FLAG], 1000b
+    .popleave:
+    pop bx
+    pop ax
+    ret
 
 .handleInstFlag:
 call .testDualMemErr
 call .testOpenMemErr
+call .testDualImmOperands
+cmp word [INST_ERR_FLAG], 0
+jnz .retWithErr 
     pusha
     mov dh, byte [INST_FLAG+1]
     call bprint
@@ -437,12 +468,12 @@ call .testOpenMemErr
     call charInt
     popa
 
-    ;pusha
-    ;mov dh, byte [INST_ERR_FLAG+1]
-    ;call bprint
-    ;mov dh, byte [INST_ERR_FLAG]
-    ;call bprint
-    ;popa
+    pusha
+    mov dh, byte [INST_ERR_FLAG+1]
+    call bprint
+    mov dh, byte [INST_ERR_FLAG]
+    call bprint
+    popa
 
     pusha
         mov al, byte ' '
@@ -480,7 +511,13 @@ call .testOpenMemErr
     mov byte [OPERANDS], 0
     mov byte [RM], 0
     mov byte [REG], 0
+    xor ax, ax ;ret 0
 ret
+.retWithErr:
+    xor ax, ax
+    inc ax
+ret
+
 
 .clearToken:
     push ax
