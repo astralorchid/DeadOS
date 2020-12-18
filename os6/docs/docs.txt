@@ -99,3 +99,12 @@ REMINDERS:
 
 symbols:
 46 44 91 93 95
+
+-may use existing procedure offset modifier
+    to get to immediate opcode and extension from the
+    already generated base opcode 
+    (more memory but might be a lil faster on runtime) 
+    but i should probably make the source index 
+    (has token in it)
+    spit itself out somewhere 
+    just incase i need the mnemonic

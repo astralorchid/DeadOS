@@ -48,16 +48,13 @@ je .endasmFile
     je .stillOnToken
     ;jmp .tokenizeCharLoop ;59 issue
     .stillOnToken:
-
+    or word [TOKEN_FLAG], 1b ;bugfix
     push ax ;just for charint
         mov al, [si]
         mov [di], al
-
         cmp [di], byte 0x0D
         jne .changeR
-
         mov [si], byte 0x0D
-
         mov [di], byte ' '
         inc di
         mov [di], byte 59
@@ -645,6 +642,8 @@ popa
 ret
     .RMUsed:
 
+    ;
+
     pusha
     mov si, di
     mov di, REGISTERS
@@ -692,17 +691,25 @@ ret
     popa
 ret
     .PosLbl:
+    add byte [OPERANDS], 1
     popa
     .PosImmLbl:
     bt word [INST_FLAG], 1
     jc .OpLbl
     bt word [INST_FLAG], 2
     jc .OpLbl
-    or word [INST_FLAG], 100000000000b
+    or word [INST_FLAG], 100100000000b
 ret
     .OpLbl:
-    mov al, byte '*'
-    call charInt
+    cmp byte [OPERANDS], 1
+    je .Op1Lbl
+    jg .Op2Lbl
+ret
+    .Op1Lbl:
+    or word [INST_FLAG], 1010000000b
+ret
+    .Op2Lbl:
+    or word [INST_FLAG], 10100000000b
 ret
 
 ;mov ax 0 - mem, 1 - not mem
