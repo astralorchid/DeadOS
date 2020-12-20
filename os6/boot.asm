@@ -37,7 +37,7 @@ mov ds, ax
 mov ax, 0x7000 ;dont go past this lol
 mov ss, ax
 
-mov bp, 0xFFFF
+mov bp, 0x0000 ;roll over
 mov sp, bp
 
 mov [DRIVE], dl

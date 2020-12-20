@@ -344,6 +344,7 @@ pop bx
 pop ax
 ret
 
+
 .pass2:
     mov si, di ;move tokens to si
     .startReadToken:
@@ -382,15 +383,21 @@ ret
     jmp .startReadToken
 
     .endofInst:
+    mov word [TOKEN_FLAG], 0 ;clear to use w/ inst flag
     call .handleInstFlag
     pop di
     cmp ax, 0
     jnz .retWithErr
+
     jmp .startReadToken
     .pass2Done:
     cmp word [INST_FLAG], 0
     jz .lastInstProcessed
+    mov word [TOKEN_FLAG], 0
     call .handleInstFlag
+    cmp ax, 0
+    jnz .retWithErr
+
     .lastInstProcessed:
     pop di
     call newLine
@@ -437,10 +444,9 @@ ret
     xor ax, bx
     jnz .popleave
     mov ax, word [INST_FLAG]
-    shr ax, 7
-    shl ax, 14
-    shr ax, 7
-    and ax, 110000000b
+    shl ax, 6
+    shr ax, 14
+    and ax, 11b
     jz .popleave
     .DualImmErr:
     bt word [INST_FLAG], 5
@@ -511,6 +517,8 @@ jnz .retWithErr
     mov byte [OPERANDS], 0
     mov byte [RM], 0
     mov byte [REG], 0
+    mov word [IMM_OP1], 0
+    mov word [IMM_OP2], 0
     xor ax, ax ;ret 0
 ret
 .retWithErr:
@@ -668,14 +676,15 @@ ret
     pusha
     mov si, di
     mov di, REGISTERS
-
     mov bx, RM
     call .useRegStruct
+
     cmp ax, 0
     jz .NotReg
     add byte [OPERANDS], 1
 popa
     call .setRegOpSize
+    call .checkSReg
 ret
     .RMUsed:
 
@@ -692,6 +701,7 @@ ret
     add byte [OPERANDS], 1
     popa
     call .setRegOpSize
+    call .checkSReg
     ret
     .NotReg:
 popa
@@ -768,20 +778,26 @@ pushf
     je .SetOp1Imm
     jg .SetOp2Imm
     .SetOp1Imm:
-
+    popf
+    popa
+    pusha
+    xor ax, ax
+    call .storeImm
     ; call .GetImmOpcode
 
     or word [INST_FLAG], 10000000b
-
-
     jmp .endcheckImm1
     .SetOp2Imm:
-
-    call .GetImmOpcode
+    popf
+    popa
+    pusha
+    xor ax, ax
+    inc ax
+    call .storeImm
+    ;call .GetImmOpcode
 
     or word [INST_FLAG], 100000000b
     .endcheckImm1:
-popf
 popa
     xor ax, ax
     inc ax
@@ -818,6 +834,79 @@ ret
     popa
 ret
 
+;ax = 0 - Immediate op 1, 1 - Immediate op 2
+.storeImm:
+    cmp ax, 0
+    jz .storeIn1
+    jnz .storeIn2
+    .storeIn1:
+    mov bx, IMM_OP1
+    jmp .storeImmLoop
+    .storeIn2:
+    mov bx, IMM_OP2
+    .storeImmLoop:
+    mov al, [di+HEX_PREFIX_LEN]
+    
+    cmp al, ' '
+    je .endStoreImm
+    cmp al, 48
+    jl .endStoreImmErr
+    cmp al, 57
+    jle .isImmNum
+    cmp al, 65
+    jl .endStoreImmErr
+    cmp al, 70
+    jle .isImmChar
+
+    .endStoreImmErr:
+    
+    xor ax, ax
+    inc ax
+    ret
+    .isImmNum:
+    sub al, 48
+    jmp .addToStoredImm
+    .isImmChar:
+    sub al, 55
+    jmp .addToStoredImm
+    .endStoreImm:
+    pusha
+    mov ax, word [IMM_OP1]
+    call hprep
+    call hprint
+    popa
+    pusha
+    mov ax, word [IMM_OP2]
+    call hprep
+    call hprint
+    popa
+    xor ax, ax
+ret
+
+.addToStoredImm:
+    mov dx, word [bx]
+    shl dx, 4
+    or dl, al
+    mov word [bx], dx
+    inc di
+jmp .storeImmLoop
+
+.checkSReg:
+pusha
+cmp [di+1], byte 's'
+jne .NotSreg
+cmp [OPERANDS], byte 1
+je .Op1Sreg
+jg .Op2Sreg
+jmp .NotSreg
+.Op1Sreg:
+or word [INST_FLAG], 1000000000000000b
+jmp .NotSreg
+.Op2Sreg:
+or word [TOKEN_FLAG], 1b
+.NotSreg:
+popa
+ret
 
 .setRegOpSize:
 pusha
@@ -970,8 +1059,11 @@ REG db 0
 RM db 0
 MODRM db 0
 IMMEDIATE dw 0
+IMM_OP1 dw 0
+IMM_OP2 dw 0
 DUMP db 0
 HEX_PREFIX db '0x',0
+HEX_PREFIX_LEN equ $-HEX_PREFIX-1
 NUM_DATA equ 3
 MNEM_0OP:
 db 'nop ',  10010000b,1,1
@@ -1061,7 +1153,7 @@ db 'shr ',1,11000000b,101b
 db 'sar ',1,11000000b,111b
 db 0
 REGISTERS:
-;all +1 because yeah
+;all +1 because yeah null terms
 db 'al ', 00000001b
 db 'ax ', 00000001b
 db 'cl ', 00000010b
@@ -1078,6 +1170,11 @@ db 'dh ', 00000111b
 db 'si ', 00000111b
 db 'bh ', 00001000b
 db 'di ', 00001000b
+db 'cs ', 00000010b
+db 'ds ', 00000100b
+db 'es ', 00000001b
+db 'fs ', 00000101b
+db 'gs ', 00000110b
 db 0
 WORD_REG:
 db 'ax ', 00000001b

@@ -1,1 +1,1 @@
-call 0x1234
+mox ax ,ss

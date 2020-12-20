@@ -54,10 +54,10 @@ TOKEN FLAG:
     -bit 3: null
     -bit 2: null
     -bit 1: null
-    -bit 0: on token
+    -bit 0: on token / OPERAND 2 SREG
 
 INSTRUCTION FLAG:
--bit 15: NULL
+-bit 15: OPERAND 1 SREG
 -bit 14: OPERAND 2 SIZE MOD
 -bit 13: OPERAND 1 SIZE MOD
 -bit 12: OPEN MEMORY OPERAND
