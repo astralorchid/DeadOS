@@ -383,7 +383,7 @@ ret
     jmp .startReadToken
 
     .endofInst:
-    mov word [TOKEN_FLAG], 0 ;clear to use w/ inst flag
+    ;mov word [TOKEN_FLAG], 0 ;clear to use w/ inst flag
     call .handleInstFlag
     pop di
     cmp ax, 0
@@ -393,7 +393,7 @@ ret
     .pass2Done:
     cmp word [INST_FLAG], 0
     jz .lastInstProcessed
-    mov word [TOKEN_FLAG], 0
+    ;mov word [TOKEN_FLAG], 0
     call .handleInstFlag
     cmp ax, 0
     jnz .retWithErr
@@ -459,10 +459,97 @@ ret
     pop ax
     ret
 
+.testOpSizeMismatch: ;also applies operand size mods
+    push ax
+    push bx
+        mov ax, word [INST_FLAG]
+        shl ax, 1
+        shr ax, 14
+        shl ax, 3
+        or word [INST_FLAG], ax
+        mov ax, word [INST_FLAG]
+        shl ax, 11 ;op 2
+        shr ax, 15
+        mov bl, al
+        mov ax, word [INST_FLAG]
+        shl ax, 12 ;op 1
+        shr ax, 15
+        mov bh, al
+        cmp bl, bh
+        jne .opSizeMismatch
+        jmp .endMismatch
+        .opSizeMismatch:
+        or word [INST_ERR_FLAG], 10000b
+        .endMismatch:
+    pop bx
+    pop ax
+ret
+
+.testDualSegErr: ;also test sreg with mov opcode
+    push ax
+    push bx
+    mov bx, word [INST_FLAG_2]
+    mov ax, word [INST_FLAG]
+    shr ax, 15
+    cmp bx, ax
+    jne .NotDualSeg
+    cmp ax, 1
+    jne .NotDualSeg
+    or word [INST_ERR_FLAG], 100000b
+    .NotDualSeg:
+    add ax, bx
+    cmp ax, 1b
+    jne .endSregErr
+    cmp byte [OPCODE], 0x88
+    je .endSregErr
+    or word [INST_ERR_FLAG], 100000b
+    .endSregErr:
+    pop bx
+    pop ax
+ret
+
+.testSregAsMemErr:
+push ax
+push bx
+xor ax, ax
+mov bx, word [INST_FLAG]
+shr bx, 15
+add ax, bx
+
+mov bx, word [INST_FLAG]
+shl bx, 10
+shr bx, 15
+add ax, bx
+cmp ax, 10b
+je .SregMemErr
+jmp .noSregMemErr
+xor ax, ax
+mov bx, word [INST_FLAG_2]
+shl bx, 15
+shr bx, 15
+add ax, bx
+
+mov bx, word [INST_FLAG]
+shl bx, 11
+shr bx, 15
+add ax, bx
+cmp ax, 10b
+jne .noSregMemErr
+.SregMemErr:
+or word [INST_ERR_FLAG], 100000b
+.noSregMemErr:
+pop bx
+pop ax
+ret
+
 .handleInstFlag:
 call .testDualMemErr
 call .testOpenMemErr
 call .testDualImmOperands
+call .testOpSizeMismatch
+call .testDualSegErr
+call .testSregAsMemErr
+
 cmp word [INST_ERR_FLAG], 0
 jnz .retWithErr 
     pusha
@@ -501,6 +588,8 @@ jnz .retWithErr
         call bprint
     popa
 
+    ;call .
+
     call .clearToken
     inc si
     inc si
@@ -512,6 +601,7 @@ jnz .retWithErr
     mov word [LINE_NUMBER], ax
 
     mov word [INST_FLAG], 0
+    mov word [INST_FLAG_2], 0
     ;mov word [INST_ERR_FLAG], 0
     mov byte [OPCODE], 0
     mov byte [OPERANDS], 0
@@ -659,10 +749,12 @@ ret
     call .checkImm
     cmp ax, 0
     jz .PosImmLbl
+    
 ret
     ;jmp .notMemRegister
     .endIsMemToken:
 popa
+    call .checkSReg
 ret
     .notMemRegister:
 
@@ -903,7 +995,7 @@ jmp .NotSreg
 or word [INST_FLAG], 1000000000000000b
 jmp .NotSreg
 .Op2Sreg:
-or word [TOKEN_FLAG], 1b
+or word [INST_FLAG_2], 1b
 .NotSreg:
 popa
 ret
@@ -1052,6 +1144,7 @@ ret
 TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
 INST_FLAG dw 0b
+INST_FLAG_2 dw 0b
 LINE_NUMBER dw 0
 OPCODE db 0
 OPERANDS db 0
@@ -1175,6 +1268,7 @@ db 'ds ', 00000100b
 db 'es ', 00000001b
 db 'fs ', 00000101b
 db 'gs ', 00000110b
+db 'ss ', 00000011b
 db 0
 WORD_REG:
 db 'ax ', 00000001b
@@ -1185,6 +1279,12 @@ db 'sp ', 00000101b
 db 'bp ', 00000110b
 db 'si ', 00000111b
 db 'di ', 00001000b
+db 'cs ', 00000010b
+db 'ds ', 00000100b
+db 'es ', 00000001b
+db 'fs ', 00000101b
+db 'gs ', 00000110b
+db 'ss ', 00000011b
 db 0
 SIZE_DEF:
 db 'byte ', 1

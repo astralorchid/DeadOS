@@ -252,19 +252,8 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'xor dx, SaveMem ', 0x0D
-    db 'add ax, ds', 0x0D
-    db 'mov cx , 0x1337 ', 0x0D
-    db 'mov byte ax , bx', 0x0D, 0x0D
-    db 'inc bx',0x0D
-    db 'mov word [0x8000], 0xFFFF', 0x0D
-    db 'mov byte [MyLbl], Hello', 0x0D
-    db 'or word [si] bp', 0x0D,0x0D, ' ', 
-    db 'call TestProcLabel', 0x0D
-    db 'TestProcLabel:', 0x0D
-    db 'xor ax, ax', 0x0D
-    db 'ret', 0x0D
-    db 'SaveMem db 0x0', 0x0D, 0x00
+    db 'xor ax, ss', 0x0D,0x00
+
 cmdTableOffset equ 0x06
 asmTokens:
     times 1000 db 0

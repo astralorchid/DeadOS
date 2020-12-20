@@ -1,1 +1,1 @@
-mox ax ,ss
+mov word [ds], ss
