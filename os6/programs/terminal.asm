@@ -294,11 +294,9 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'xor cx, cx', 0x0D,
-    db 'add cl, bl', 0x0D,
-    db 'add ch, bh', 0x0D,
-    db 'add cx, bx', 0x0D,
-    db 'mov ax, cx', 0x0D,
+    db 'mov ax, word 0x6666', 0x0D,
+    db 'add ax, word 0x1000', 0x0D,
+    db 'add al, byte 0x1', 0x0D
     db 'retf', 0x0D, 0x00
 
 cmdTableOffset equ 0x06

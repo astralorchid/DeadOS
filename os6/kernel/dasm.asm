@@ -937,6 +937,32 @@ ret
     popa
 ret
 
+.GetImmOpcodeExt:
+    pusha
+    mov si, di
+    mov di, MNEM_0OP ;include all mnem structs
+    mov bx, REG
+    mov dh, byte 1
+    mov dl, byte 2
+    xor ax, ax
+    call .useMnemStruct
+    mov si, di
+    mov di, MNEM_1OP ;include all mnem structs
+    mov bx, REG
+    mov dh, byte 1
+    mov dl, byte 2
+    xor ax, ax
+    call .useMnemStruct
+    mov si, di
+    mov di, MNEM_2OP ;include all mnem structs
+    mov bx, REG
+    mov dh, byte 1
+    mov dl, byte 2
+    xor ax, ax
+    call .useMnemStruct
+    popa
+ret
+
 ;ax = 0 - Immediate op 1, 1 - Immediate op 2
 .storeImm:
     cmp ax, 0
@@ -975,16 +1001,16 @@ ret
     .endStoreImm:
     mov al, byte ' '
     call charInt
-    pusha
-    mov ax, word [IMM_OP1]
-    call hprep
-    call hprint
-    popa
-    pusha
-    mov ax, word [IMM_OP2]
-    call hprep
-    call hprint
-    popa
+    ;pusha
+    ;mov ax, word [IMM_OP1]
+    ;call hprep
+    ;call hprint
+    ;popa
+    ;pusha
+    ;mov ax, word [IMM_OP2]
+    ;call hprep
+    ;call hprint
+    ;popa
     xor ax, ax
 ret
 
@@ -1154,17 +1180,68 @@ ret
 ret
 
 assembleInstruction:
+mov ax, word [INST_FLAG]
+shl ax, 4
+shr ax, 13
+and ax, 111b
+jnz .assembleLabelOp
+
 bt word [INST_FLAG], 0
 jc .assemble0OpInst
 
 mov ax, word [INST_FLAG]
-shl ax, 9
+shl ax, 7
 shr ax, 14
+and ax, 11b
+jnz .assembleImmOp
+
+call .isolateOpType
 cmp ax, 0
 jz .RegReg
 ret
 
-.RegReg:
+.isolateOpType:
+mov ax, word [INST_FLAG]
+shl ax, 9
+shr ax, 14
+ret
+
+.assembleImmOp:
+call dasm.GetImmOpcodeExt
+dec byte [REG]
+call dasm.GetImmOpcode
+
+call .isolateOpType
+cmp ax, 0
+jnz .MemImmOp
+
+mov dx, 11000000b
+call .constructModRMByte
+
+bt word [INST_FLAG], 4
+jc .ImmOpWord
+
+call .writeOpMod
+mov al, byte [IMM_OP2]
+call .writeByte
+ret
+.ImmOpWord:
+or word [OPCODE], 1b
+call .writeOpMod
+mov al, byte [IMM_OP2]
+call .writeByte
+mov al, byte [IMM_OP2+1]
+call .writeByte
+ret
+
+.MemImmOp:
+ret
+
+.assembleLabelOp:
+ret
+
+;mov dx - mod 
+.constructModRMByte:
 mov al, byte [REG]
 xor ah, ah
 mov word [MODRM], ax
@@ -1173,35 +1250,43 @@ shl ax, 3
 mov word [MODRM], ax
 mov al, byte [RM]
 xor ah, ah
+or ax, dx
 or word [MODRM], ax
-or word [MODRM], 11000000b
+ret
+
+.RegReg:
+mov dx, 11000000b
+call .constructModRMByte
 bt word [INST_FLAG], 3
 jnc .endRegReg
 or word [OPCODE], 1b
 .endRegReg:
-mov al, [OPCODE]
-mov di, word [END_BIN]
-mov [di], al
-add word [END_BIN], 1
-
-mov al, [MODRM]
-mov di, word [END_BIN]
-mov [di], al
-add word [END_BIN], 1
+call .writeOpMod
 ret
 
 .assemble0OpInst:
 mov al, byte '*'
 call charInt
 mov al, [OPCODE]
-mov di, word [END_BIN]
-mov [di], al
-add word [END_BIN], 1
+call .writeByte
 pusha
 mov ax, word [END_BIN]
 call hprep
 call hprint
 popa
+ret
+
+.writeByte:
+mov di, word [END_BIN]
+mov [di], al
+inc word [END_BIN]
+ret
+
+.writeOpMod:
+mov al, [OPCODE]
+call .writeByte
+mov al, [MODRM]
+call .writeByte
 ret
 
 END_BIN dw 0
@@ -1278,16 +1363,16 @@ db 'jg ',1,1,1
 db 'daa ',1,1,1
 db 0
 MNEM_2OP:
-;opcode, immediate opcode, immediate opcode extension
-db 'mov ',10001000b,11000110b,000b
-db 'xor ',00110000b,10000000b,110b
-db 'cmp ',00111000b,10000000b,111b
-db 'add ',00000000b,10000000b,000b
-db 'or ',00001000b,10000000b,001b
-db 'adc ',00010000b,10000000b,010b
-db 'sbb ',00011000b,10000000b,011b
-db 'and ',00100000b,10000000b,100b
-db 'sub ',00101000b,10000000b,101b
+;opcode, immediate opcode, immediate opcode extension (+1)
+db 'mov ',10001000b,11000110b,001b
+db 'xor ',00110000b,10000000b,111b
+db 'cmp ',00111000b,10000000b,1000b
+db 'add ',00000000b,10000000b,001b
+db 'or ',00001000b,10000000b,010b
+db 'adc ',00010000b,10000000b,011b
+db 'sbb ',00011000b,10000000b,100b
+db 'and ',00100000b,10000000b,101b
+db 'sub ',00101000b,10000000b,110b
 db 'das ',1,1,1
 db 'aaa ',1,1,1
 db 'aas ',1,1,1
