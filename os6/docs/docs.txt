@@ -54,7 +54,7 @@ TOKEN FLAG:
     -bit 3: null
     -bit 2: null
     -bit 1: null
-    -bit 0: on token / OPERAND 2 SREG
+    -bit 0: on token
 
 INSTRUCTION FLAG:
 -bit 15: OPERAND 1 SREG
@@ -74,6 +74,7 @@ INSTRUCTION FLAG:
 -bit 1: VALID 1OP INSTRUCTION
 -bit 0: VALID 0OP INSTRUCTION
 
+INST_FLAG_2
 INSTRUCTION ERROR FLAG:
     -bit 5: SEGMENT REG MISUSE
     -bit 4: OPERAND SIZE MISMATCH

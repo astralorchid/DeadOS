@@ -1,1 +1,1 @@
-mov word [ds], ss
+add cl, bl

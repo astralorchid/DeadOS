@@ -8,8 +8,10 @@ jmp setInput
 
 main:
 call setInitVideoMode
+
 ;int 0x20
 ;tokenizer testing
+cli
 push ds
 push es
 mov ax, 0x1000
@@ -51,9 +53,47 @@ jz .nopass2Err
     call newLine
 
 .nopass2Err:
+mov ax, 0x6000
+mov es, ax
+mov ax, 0x1000
+mov ds, ax
+xor di, di
+.printAssembledBin:
+cmp di, word [END_BIN]
+jl .loopBinPrint
+
+jmp .endAssembler
+.loopBinPrint:
+pusha
+mov al, byte [di]
+xor ah, ah
+call hprep
+call hprint
+popa
+inc di
+jmp .printAssembledBin
+.endAssembler:
 pop es
 pop ds
 
+
+push ds
+mov ax, .fromAssem
+push ax
+mov bx, 0x1337
+jmp [farptr]
+
+mov al, byte '?'
+call charInt
+.fromAssem:
+call newLine
+pusha
+call hprep
+call hprint
+popa
+sti
+
+call newLine
 mov si, OSNAME
 call sprint
 mov al, byte '>'
@@ -62,6 +102,8 @@ call charInt
 
 jmp $
 
+farptr:
+dd 0x60000000
 setInput:
 pop ax
 mov [enableInputSeg], ax
@@ -252,7 +294,12 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
-    db 'xor ax, ss', 0x0D,0x00
+    db 'xor cx, cx', 0x0D,
+    db 'add cl, bl', 0x0D,
+    db 'add ch, bh', 0x0D,
+    db 'add cx, bx', 0x0D,
+    db 'mov ax, cx', 0x0D,
+    db 'retf', 0x0D, 0x00
 
 cmdTableOffset equ 0x06
 asmTokens:

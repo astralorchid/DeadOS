@@ -588,7 +588,18 @@ jnz .retWithErr
         call bprint
     popa
 
-    ;call .
+    pusha
+    push es
+    push ds
+    mov ax, 0x6000
+    mov es, ax ;yes
+    mov ax, 0x1000
+    mov ds, ax
+    xor di, di
+    call assembleInstruction
+    pop ds
+    pop es
+    popa
 
     call .clearToken
     inc si
@@ -962,6 +973,8 @@ ret
     sub al, 55
     jmp .addToStoredImm
     .endStoreImm:
+    mov al, byte ' '
+    call charInt
     pusha
     mov ax, word [IMM_OP1]
     call hprep
@@ -1140,7 +1153,58 @@ ret
     xor ax, ax
 ret
 
+assembleInstruction:
+bt word [INST_FLAG], 0
+jc .assemble0OpInst
 
+mov ax, word [INST_FLAG]
+shl ax, 9
+shr ax, 14
+cmp ax, 0
+jz .RegReg
+ret
+
+.RegReg:
+mov al, byte [REG]
+xor ah, ah
+mov word [MODRM], ax
+mov ax, word [MODRM]
+shl ax, 3
+mov word [MODRM], ax
+mov al, byte [RM]
+xor ah, ah
+or word [MODRM], ax
+or word [MODRM], 11000000b
+bt word [INST_FLAG], 3
+jnc .endRegReg
+or word [OPCODE], 1b
+.endRegReg:
+mov al, [OPCODE]
+mov di, word [END_BIN]
+mov [di], al
+add word [END_BIN], 1
+
+mov al, [MODRM]
+mov di, word [END_BIN]
+mov [di], al
+add word [END_BIN], 1
+ret
+
+.assemble0OpInst:
+mov al, byte '*'
+call charInt
+mov al, [OPCODE]
+mov di, word [END_BIN]
+mov [di], al
+add word [END_BIN], 1
+pusha
+mov ax, word [END_BIN]
+call hprep
+call hprint
+popa
+ret
+
+END_BIN dw 0
 TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
 INST_FLAG dw 0b
@@ -1323,3 +1387,6 @@ dw 0000000000000000b
 dw 0001000000000000b
 
 dw 1111111111111111b ;end of struct
+INST_FLAG_PROC:
+
+dw 1111111111111111b 
