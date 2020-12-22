@@ -999,8 +999,8 @@ ret
     sub al, 55
     jmp .addToStoredImm
     .endStoreImm:
-    mov al, byte ' '
-    call charInt
+    ;mov al, byte ' '
+    ;call charInt
     ;pusha
     ;mov ax, word [IMM_OP1]
     ;call hprep
@@ -1207,34 +1207,67 @@ shr ax, 14
 ret
 
 .assembleImmOp:
-call dasm.GetImmOpcodeExt
-dec byte [REG]
-call dasm.GetImmOpcode
-
 call .isolateOpType
 cmp ax, 0
 jnz .MemImmOp
 
+call dasm.GetImmOpcodeExt
+dec byte [REG]
+call dasm.GetImmOpcode
+
 mov dx, 11000000b
 call .constructModRMByte
 
+mov bx, IMM_OP2
+.useImmSize:
 bt word [INST_FLAG], 4
 jc .ImmOpWord
 
 call .writeOpMod
-mov al, byte [IMM_OP2]
+mov al, byte [bx]
 call .writeByte
 ret
+
 .ImmOpWord:
 or word [OPCODE], 1b
 call .writeOpMod
-mov al, byte [IMM_OP2]
+mov al, byte [bx]
 call .writeByte
-mov al, byte [IMM_OP2+1]
+mov al, byte [bx+1]
 call .writeByte
 ret
 
 .MemImmOp:
+mov ax, word [INST_FLAG]
+shl ax, 7
+shr ax, 14
+cmp ax, 11b
+jne .NotDualImmOp
+call dasm.GetImmOpcodeExt
+dec byte [REG]
+call dasm.GetImmOpcode
+
+mov byte [RM], 110b
+mov dx, 11000000b
+call .constructModRMByte
+
+.NotDualImmOp:
+bt word [INST_FLAG], 5
+jc .Op1MemImm
+;op2 mem imm
+or word [OPCODE], 10b
+mov byte [RM], 110b
+xor dx, dx
+call .constructModRMByte
+mov bx, IMM_OP2
+call .useImmSize
+ret
+.Op1MemImm:
+mov byte [RM], 110b
+xor dx, dx
+call .constructModRMByte
+mov bx, IMM_OP1
+call .useImmSize
 ret
 
 .assembleLabelOp:
@@ -1385,14 +1418,14 @@ db 'ouisw ',1,1,1
 db 'test ',10000100b,10000100b,1
 db 'xchg ',1,1,1
 db 'lea ',1,1,1
-db 'rol ',1,11000000b,000b
-db 'ror ',1,11000000b,001b
-db 'rcl ',1,11000000b,010b
-db 'rcr ',1,11000000b,011b
-db 'shl ',1,11000000b,100b
-db 'sal ',1,11000000b,110b
-db 'shr ',1,11000000b,101b
-db 'sar ',1,11000000b,111b
+db 'rol ',1,11000000b,001b
+db 'ror ',1,11000000b,010b
+db 'rcl ',1,11000000b,011b
+db 'rcr ',1,11000000b,100b
+db 'shl ',1,11000000b,101b
+db 'sal ',1,11000000b,111b
+db 'shr ',1,11000000b,110b
+db 'sar ',1,11000000b,1000b
 db 0
 REGISTERS:
 ;all +1 because yeah null terms
