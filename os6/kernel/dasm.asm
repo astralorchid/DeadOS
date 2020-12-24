@@ -1259,15 +1259,60 @@ or word [OPCODE], 10b
 mov byte [RM], 110b
 xor dx, dx
 call .constructModRMByte
+
+bt word [INST_FLAG], 4
+jnc .Op2MemImmByte
+or byte [OPCODE], 1b
+.Op2MemImmByte:
 mov bx, IMM_OP2
-call .useImmSize
+
+call .writeOpMod
+mov al, byte [bx]
+call .writeByte
+mov al, byte [bx+1]
+call .writeByte
+
 ret
+
+
 .Op1MemImm:
 mov byte [RM], 110b
 xor dx, dx
 call .constructModRMByte
+
+bt word [INST_FLAG], 3
+jnc .Op1MemImmByte
+or byte [OPCODE], 1b
+
 mov bx, IMM_OP1
-call .useImmSize
+call .writeOpMod
+mov al, byte [bx]
+call .writeByte
+mov al, byte [bx+1]
+call .writeByte
+bt word [INST_FLAG], 8
+jnc .endit2
+mov bx, IMM_OP2
+mov al, byte [bx]
+call .writeByte
+mov al, byte [bx+1]
+call .writeByte
+.endit2:
+ret
+
+.Op1MemImmByte:
+mov bx, IMM_OP1
+call .writeOpMod
+mov al, byte [bx]
+call .writeByte
+mov al, byte [bx+1]
+call .writeByte
+bt word [INST_FLAG], 8
+jnc .endit
+mov bx, IMM_OP2
+mov al, byte [bx]
+call .writeByte
+.endit:
 ret
 
 .assembleLabelOp:
