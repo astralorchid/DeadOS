@@ -1222,10 +1222,7 @@ xor dx, dx
 call .constructModRMByte
 call .writeOpMod
 mov bx, IMM_OP1
-mov al, byte [IMM_OP1]
-call .writeByte
-mov al, byte [IMM_OP1+1]
-call .writeByte
+call .writeWord
 ret
 
 .Op1Sreg:
@@ -1248,10 +1245,7 @@ xor dx, dx
 call .constructModRMByte
 call .writeOpMod
 mov bx, IMM_OP2
-mov al, byte [IMM_OP1]
-call .writeByte
-mov al, byte [IMM_OP1+1]
-call .writeByte
+call .writeWord
 ret
 
 .isolateOpType:
@@ -1285,6 +1279,7 @@ ret
 .ImmOpWord:
 or word [OPCODE], 1b
 call .writeOpMod
+.writeWord:
 mov al, byte [bx]
 call .writeByte
 mov al, byte [bx+1]
@@ -1321,10 +1316,7 @@ or byte [OPCODE], 1b
 mov bx, IMM_OP2
 
 call .writeOpMod
-mov al, byte [bx]
-call .writeByte
-mov al, byte [bx+1]
-call .writeByte
+call .writeWord
 
 ret
 
@@ -1340,27 +1332,18 @@ or byte [OPCODE], 1b
 
 mov bx, IMM_OP1
 call .writeOpMod
-mov al, byte [bx]
-call .writeByte
-mov al, byte [bx+1]
-call .writeByte
+call .writeWord
 bt word [INST_FLAG], 8
 jnc .endit2
 mov bx, IMM_OP2
-mov al, byte [bx]
-call .writeByte
-mov al, byte [bx+1]
-call .writeByte
+call .writeWord
 .endit2:
 ret
 
 .Op1MemImmByte:
 mov bx, IMM_OP1
 call .writeOpMod
-mov al, byte [bx]
-call .writeByte
-mov al, byte [bx+1]
-call .writeByte
+call .writeWord
 bt word [INST_FLAG], 8
 jnc .endit
 mov bx, IMM_OP2
