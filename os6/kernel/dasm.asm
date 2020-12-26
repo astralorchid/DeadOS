@@ -1186,6 +1186,14 @@ shr ax, 13
 and ax, 111b
 jnz .assembleLabelOp
 
+mov ax, word [INST_FLAG]
+shr ax, 15
+mov bx, word [INST_FLAG_2]
+shl bx, 1
+or ax, bx
+cmp ax, 1b
+jg .Op2Sreg
+je .Op1Sreg
 bt word [INST_FLAG], 0
 jc .assemble0OpInst
 
@@ -1198,6 +1206,52 @@ jnz .assembleImmOp
 call .isolateOpType
 cmp ax, 0
 jz .RegReg
+ret
+
+.Op2Sreg:
+mov byte [OPCODE], 10001100b 
+bt word [INST_FLAG], 5
+jc .Op2SregMem
+mov dx, 11000000b
+call .constructModRMByte
+call .writeOpMod
+ret
+.Op2SregMem:
+mov byte [RM], 110b
+xor dx, dx
+call .constructModRMByte
+call .writeOpMod
+mov bx, IMM_OP1
+mov al, byte [IMM_OP1]
+call .writeByte
+mov al, byte [IMM_OP1+1]
+call .writeByte
+ret
+
+.Op1Sreg:
+push ax
+mov al, byte [RM]
+mov ah, byte [REG]
+mov byte [REG], al
+mov byte [RM], ah
+pop ax
+mov byte [OPCODE], 10001110b
+bt word [INST_FLAG], 6
+jc .Op1SregMem
+mov dx, 11000000b
+call .constructModRMByte
+call .writeOpMod
+ret
+.Op1SregMem:
+mov byte [RM], 110b
+xor dx, dx
+call .constructModRMByte
+call .writeOpMod
+mov bx, IMM_OP2
+mov al, byte [IMM_OP1]
+call .writeByte
+mov al, byte [IMM_OP1+1]
+call .writeByte
 ret
 
 .isolateOpType:
@@ -1514,6 +1568,8 @@ db 'gs ', 00000110b
 db 'ss ', 00000011b
 db 0
 SIZE_DEF:
+db 'by ', 1
+db 'wo ', 2
 db 'byte ', 1
 db 'word ', 2
 TOKEN_FLAG_PROC:
