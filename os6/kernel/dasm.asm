@@ -588,6 +588,7 @@ jnz .retWithErr
         call bprint
     popa
 
+
     pusha
     push es
     push ds
@@ -841,6 +842,9 @@ ret
     popa
 ret
     .PosLbl:
+    
+    call .storeLbl
+
     add byte [OPERANDS], 1
     popa
     .PosImmLbl:
@@ -862,6 +866,20 @@ ret
     or word [INST_FLAG], 10100000000b
 ret
 
+
+.storeLbl:
+pusha
+    mov di, LBL_DEF
+    .storeLblLoop:
+    cmp [si], byte ' '
+    je .endStoreLbl
+    movsb
+    jmp .storeLblLoop
+    .endStoreLbl:
+    mov si, LBL_DEF
+    call sprint
+popa
+ret
 ;mov ax 0 - mem, 1 - not mem
 .checkImm:
 pusha
@@ -1591,4 +1609,10 @@ dw 0001000000000000b
 dw 1111111111111111b ;end of struct
 INST_FLAG_PROC:
 
-dw 1111111111111111b 
+dw 1111111111111111b
+LBL_DEF:
+    times 32 db 0
+LBL_OP1:
+    times 32 db 0
+LBL_OP2:
+    times 32 db 0
