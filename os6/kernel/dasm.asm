@@ -870,16 +870,26 @@ ret
 .storeLbl:
 pusha
     mov di, LBL_DEF
+    .getLblDefOffset:
+    cmp [di], byte 0x0
+    jz .storeLblLoop
+    inc di
+    jmp .getLblDefOffset
     .storeLblLoop:
     cmp [si], byte ' '
     je .endStoreLbl
     movsb
     jmp .storeLblLoop
     .endStoreLbl:
+    movsb
+    mov al, byte [OPERANDS]
+    inc al
+    mov [di], al
     mov si, LBL_DEF
     call sprint
 popa
 ret
+
 ;mov ax 0 - mem, 1 - not mem
 .checkImm:
 pusha
@@ -1330,12 +1340,11 @@ call .constructModRMByte
 bt word [INST_FLAG], 4
 jnc .Op2MemImmByte
 or byte [OPCODE], 1b
+
 .Op2MemImmByte:
 mov bx, IMM_OP2
-
 call .writeOpMod
 call .writeWord
-
 ret
 
 

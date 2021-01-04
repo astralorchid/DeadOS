@@ -1,1 +1,2 @@
-push bx
+db 0x8E, 0x1E
+mov ds, word [bx]
