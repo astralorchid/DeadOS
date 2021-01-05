@@ -621,6 +621,17 @@ jnz .retWithErr
     mov byte [REG], 0
     mov word [IMM_OP1], 0
     mov word [IMM_OP2], 0
+
+    ;clear LBL_DEF
+    push ax
+    push di
+    mov al, 0x00
+    mov di, LBL_DEF
+    mov cx, 100
+    rep stosb
+    pop di
+    pop ax
+
     xor ax, ax ;ret 0
 ret
 .retWithErr:
@@ -863,6 +874,7 @@ ret
     or word [INST_FLAG], 1010000000b
 ret
     .Op2Lbl:
+    
     or word [INST_FLAG], 10100000000b
 ret
 
@@ -1620,7 +1632,7 @@ INST_FLAG_PROC:
 
 dw 1111111111111111b
 LBL_DEF:
-    times 32 db 0
+    times 100 db 0
 LBL_OP1:
     times 32 db 0
 LBL_OP2:
