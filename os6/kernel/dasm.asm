@@ -606,6 +606,11 @@ jnz .retWithErr
     inc si
     inc si
 
+    pusha
+    mov si, LBL_DEF
+    call sprint
+    popa
+
     call newLine
 
     mov ax, word [LINE_NUMBER]
@@ -853,7 +858,7 @@ ret
     popa
 ret
     .PosLbl:
-    
+    mov ah, 0
     call .storeLbl
 
     add byte [OPERANDS], 1
@@ -871,14 +876,17 @@ ret
     jg .Op2Lbl
 ret
     .Op1Lbl:
+    mov ah, 1
+    call .storeLbl
     or word [INST_FLAG], 1010000000b
 ret
     .Op2Lbl:
-    
+    mov ah, 1
+    call .storeLbl
     or word [INST_FLAG], 10100000000b
 ret
 
-
+;ah - 0 = def lbl, 1 - op lbl
 .storeLbl:
 pusha
     mov di, LBL_DEF
@@ -890,17 +898,41 @@ pusha
     .storeLblLoop:
     cmp [si], byte ' '
     je .endStoreLbl
+    cmp [si], byte ']'
+    je .putItInReverseTerry
+    .storeLblMov:
     movsb
     jmp .storeLblLoop
     .endStoreLbl:
     movsb
+    xor dx, dx
+    xor bx, bx
+    inc dx
+    cmp ah, byte 0
+    cmovnz bx, dx
+    xor bx, 1
     mov al, byte [OPERANDS]
-    inc al
+    add ax, bx
     mov [di], al
-    mov si, LBL_DEF
-    call sprint
 popa
 ret
+
+.putItInReverseTerry:
+    push ax
+    xor ax, ax
+    .reverseCmp:
+    dec si
+    cmp [si], byte ' '
+    je .checkSpace
+    jmp .reverseCmp
+    .checkSpace:
+    cmp al, byte 0
+    jnz .endReverse
+    inc al
+    jmp .reverseCmp
+    .endReverse:
+    pop ax
+jmp .storeLblMov
 
 ;mov ax 0 - mem, 1 - not mem
 .checkImm:
@@ -1637,3 +1669,5 @@ LBL_OP1:
     times 32 db 0
 LBL_OP2:
     times 32 db 0
+SYMBOL_TABLE:
+    times 100 db 0

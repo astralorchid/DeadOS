@@ -92,6 +92,7 @@ TFP: token flag procedure
 PDT: program descriptor Table
 
 to-do list:
+-symbol/label table generation
 -dual immediate handler
 -program backspace
 -pmalloc error handler
