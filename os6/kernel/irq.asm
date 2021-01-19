@@ -82,8 +82,7 @@ irq:
 
     .irq0:
         pusha
-            ;scheduler
-            ;maybe next year
+            ;code to run here
 
             mov al, 0x20
             out PIC0, al  

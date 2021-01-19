@@ -593,7 +593,7 @@ jnz .retWithErr
     push es
     push ds
     mov ax, 0x6000
-    mov es, ax ;yes
+    mov es, ax
     mov ax, 0x1000
     mov ds, ax
     xor di, di
@@ -878,11 +878,32 @@ ret
     .Op1Lbl:
     mov ah, 1
     call .storeLbl
+    ;write empty immediate
+
+    bt word [INST_FLAG], 11
+    jnc .emptyImmOp1Lbl
+    jmp .endOp1Lbl
+    .emptyImmOp1Lbl: ;is proc or def lbl
+    xor al, al
+    call assembleInstruction.writeByte
+    xor al, al
+    call assembleInstruction.writeByte
+    .endOp1Lbl:
     or word [INST_FLAG], 1010000000b
 ret
     .Op2Lbl:
     mov ah, 1
     call .storeLbl
+
+    bt word [INST_FLAG], 11
+    jnc .emptyImmOp2Lbl
+    jmp .endOp2Lbl
+    .emptyImmOp2Lbl: ;is proc or def lbl
+    xor al, al
+    call assembleInstruction.writeByte
+    xor al, al
+    call assembleInstruction.writeByte
+    .endOp2Lbl:
     or word [INST_FLAG], 10100000000b
 ret
 

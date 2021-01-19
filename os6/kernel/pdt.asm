@@ -54,7 +54,7 @@ ret
             jg .contreadLoop
 
             add al, byte [KERNEL_SIZE]
-            inc al ;fuck you
+            inc al
             mov byte [bx], al ;save start sector
             mov byte [bx+1], ah ;save head
 
