@@ -611,6 +611,16 @@ jnz .retWithErr
     call sprint
     popa
 
+    pusha
+    mov si, LBL_DEF
+    mov di, SYMBOL_TABLE
+    call .parseLabels
+    popa
+
+    pusha
+    mov si, SYMBOL_TABLE
+    call sprint
+    popa
     call newLine
 
     mov ax, word [LINE_NUMBER]
@@ -878,31 +888,11 @@ ret
     .Op1Lbl:
     mov ah, 1
     call .storeLbl
-    ;write empty immediate
-
-    bt word [INST_FLAG], 11
-    jnc .emptyImmOp1Lbl
-    jmp .endOp1Lbl
-    .emptyImmOp1Lbl: ;is proc or def lbl
-    xor al, al
-    call assembleInstruction.writeByte
-    xor al, al
-    call assembleInstruction.writeByte
-    .endOp1Lbl:
     or word [INST_FLAG], 1010000000b
 ret
     .Op2Lbl:
     mov ah, 1
     call .storeLbl
-
-    bt word [INST_FLAG], 11
-    jnc .emptyImmOp2Lbl
-    jmp .endOp2Lbl
-    .emptyImmOp2Lbl: ;is proc or def lbl
-    xor al, al
-    call assembleInstruction.writeByte
-    xor al, al
-    call assembleInstruction.writeByte
     .endOp2Lbl:
     or word [INST_FLAG], 10100000000b
 ret
@@ -1271,6 +1261,51 @@ ret
     pop ax
     xor ax, ax
 ret
+
+;si = label def table
+;di = symbol table start
+.parseLabels:
+xor cx, cx
+
+    cmp [si], byte 0
+    je .endparseLbls
+
+    .parseLoop:
+    xor ax, ax
+    cmp [si], byte ' '
+    cmovne ax, word [si]
+    cmp al, byte 0
+    je .endOfLbl
+    inc cx
+    push ax
+    inc si
+    jmp .parseLoop
+
+    .endOfLbl:
+    cmp cx, word 0
+    jg .popLblStack
+    jle .endparseLbls
+    .popLblStack:
+    pop ax
+    mov [di], al
+    inc di
+    dec cx
+    jmp .endOfLbl
+
+    ;.endOfLbl:
+    ;cmp cx, word 0
+    ;jg .popLblStack
+    ;jle .endparseLbls
+    ;.popLblStack:
+    ;pop ax
+    ;mov [di], al
+    ;inc di
+    ;dec cx
+    ;jmp .endOfLbl
+    .endparseLbls:
+
+ret
+
 
 assembleInstruction:
 mov ax, word [INST_FLAG]

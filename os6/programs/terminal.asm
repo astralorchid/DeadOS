@@ -294,11 +294,11 @@ InputLen dw 0
 %include '../kernel/kernel_data.asm'
 %include '../kernel/dasm.asm'
 asmFile:
+db 'MyLabel db 0x00', 0x0D
 db 'yourFace:', 0x0D
-db 'mov [MyLabel], 0x11', 0x0D
+db 'mov [ MyLabel ], 0x11', 0x0D
 db 'mov ax, word 0x1000', 0x0D
 db 'mov ds ax', 0x0D
-db 'MyLabel db 0x00', 0x0D
 db 'retf', 0x0D, 0x00
 db 0x00
 
