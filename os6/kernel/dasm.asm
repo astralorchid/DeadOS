@@ -1270,6 +1270,21 @@ xor cx, cx
     cmp [si], byte 0
     je .endparseLbls
 
+    bt word [INST_FLAG], 11
+    jnc .normalLbl
+
+    ;.loopLbl:
+    ;cmp [si], byte ' '
+    ;jne .loopThruLbl
+    ;inc si
+    ;cmp [si], byte 2;
+
+    ;.loopThruLbl:
+    ;inc si
+    ;jmp .loopLbl
+
+    .normalLbl:
+
     .parseLoop:
     xor ax, ax
     cmp [si], byte ' '
@@ -1277,6 +1292,7 @@ xor cx, cx
     cmp al, byte 0
     je .endOfLbl
     inc cx
+    mov dx, cx
     push ax
     inc si
     jmp .parseLoop
@@ -1284,24 +1300,20 @@ xor cx, cx
     .endOfLbl:
     cmp cx, word 0
     jg .popLblStack
-    jle .endparseLbls
+    jle .endparseLbl
     .popLblStack:
     pop ax
+    push di
+    add di, cx
+    dec di
     mov [di], al
-    inc di
+    pop di
     dec cx
     jmp .endOfLbl
+    .endparseLbl:
 
-    ;.endOfLbl:
-    ;cmp cx, word 0
-    ;jg .popLblStack
-    ;jle .endparseLbls
-    ;.popLblStack:
-    ;pop ax
-    ;mov [di], al
-    ;inc di
-    ;dec cx
-    ;jmp .endOfLbl
+    add di, dx
+    mov [di], byte ' '
     .endparseLbls:
 
 ret
