@@ -882,20 +882,27 @@ ret
 ret
     .OpLbl:
     cmp byte [OPERANDS], 1
-    je .Op1Lbl
-    jg .Op2Lbl
-ret
-    .Op1Lbl:
+    cmove ax, word [OP1LBL_MASK]
+    cmovg ax, word [OP2LBL_MASK]
+    or word [INST_FLAG], ax
     mov ah, 1
     call .storeLbl
-    or word [INST_FLAG], 1010000000b
 ret
-    .Op2Lbl:
-    mov ah, 1
-    call .storeLbl
-    .endOp2Lbl:
-    or word [INST_FLAG], 10100000000b
-ret
+;    .OpLbl:
+;    cmp byte [OPERANDS], 1
+;    je .Op1Lbl
+;    jg .Op2Lbl
+;ret
+;    .Op1Lbl:
+;    mov ah, 1
+;    call .storeLbl
+;    or word [INST_FLAG], 1010000000b
+;ret
+;    .Op2Lbl:
+;    mov ah, 1
+;    call .storeLbl
+;    or word [INST_FLAG], 10100000000b
+;ret
 
 ;ah - 0 = def lbl, 1 - op lbl
 .storeLbl:
@@ -1273,16 +1280,6 @@ xor cx, cx
     bt word [INST_FLAG], 11
     jnc .normalLbl
 
-    ;.loopLbl:
-    ;cmp [si], byte ' '
-    ;jne .loopThruLbl
-    ;inc si
-    ;cmp [si], byte 2;
-
-    ;.loopThruLbl:
-    ;inc si
-    ;jmp .loopLbl
-
     .normalLbl:
 
     .parseLoop:
@@ -1292,7 +1289,7 @@ xor cx, cx
     cmp al, byte 0
     je .endOfLbl
     inc cx
-    mov dx, cx
+    mov dx, cx ;save cx
     push ax
     inc si
     jmp .parseLoop
@@ -1543,6 +1540,12 @@ mov al, [MODRM]
 call .writeByte
 ret
 
+cmd: db 'a',0xff,0
+count: db 1
+mov [cmd + count], ah
+
+OP1LBL_MASK dw 1010000000b
+OP2LBL_MASK dw 10100000000b
 END_BIN dw 0
 TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
@@ -1619,6 +1622,7 @@ db 0
 MNEM_2OP:
 ;opcode, immediate opcode, immediate opcode extension (+1)
 db 'mov ',10001000b,11000110b,001b
+db 'toast ',10001000b,11000110b,001b ;bread joke
 db 'xor ',00110000b,10000000b,111b
 db 'cmp ',00111000b,10000000b,1000b
 db 'add ',00000000b,10000000b,001b
@@ -1691,6 +1695,7 @@ db 'ss ', 00000011b
 db 0
 SIZE_DEF:
 db 'by ', 1
+db 'pb ', 2
 db 'wo ', 2
 db 'byte ', 1
 db 'word ', 2
