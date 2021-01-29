@@ -1271,20 +1271,32 @@ xor cx, cx
     jnc .normalLbl
 
     push si
+    push cx ;use as label length counter
     .findLblSpace:
-    inc si
     cmp [si], byte ' '
     je .getLbl2Index
+    inc si
+    inc cx
+    jmp .findLblSpace
 
     .getLbl2Index:
     inc si
     cmp [si], byte 2
-    je .test2ndLbl
-    pop si ;for testing
-    .test2ndLbl:
+    je .gotoLbl2Start
+    inc si
+    xor cx, cx ;reset label length counter
+    jmp .findLblSpace
+
+    .gotoLbl2Start:
+    inc cx
+    sub si, cx
+
+    pop cx ;for testing
+    pop si
+
+    .getLbl2Start:
 
     .normalLbl:
-    
     .parseLoop:
     xor ax, ax
     cmp [si], byte ' '
@@ -1697,6 +1709,13 @@ db 'pb ', 2
 db 'wo ', 2
 db 'byte ', 1
 db 'word ', 2
+db 0
+DEFINE_BYTE:
+db 'db '
+db 0
+DEFINE_PROCEDURE:
+db ': '
+db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
 dw 0000000000000000b
