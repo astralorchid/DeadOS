@@ -588,6 +588,11 @@ jnz .retWithErr
         call bprint
     popa
 
+    pusha
+    mov si, LBL_DEF
+    mov di, SYMBOL_TABLE
+    call .parseLabels
+    popa
 
     pusha
     push es
@@ -609,12 +614,6 @@ jnz .retWithErr
     pusha
     mov si, LBL_DEF
     call sprint
-    popa
-
-    pusha
-    mov si, LBL_DEF
-    mov di, SYMBOL_TABLE
-    call .parseLabels
     popa
 
     pusha
@@ -1000,6 +999,7 @@ popf
 popa
     xor ax, ax
 ret
+
 ;ax - mnem struct
 .GetImmOpcode:
     pusha
@@ -1078,29 +1078,19 @@ ret
     jle .isImmChar
 
     .endStoreImmErr:
-    
     xor ax, ax
     inc ax
     ret
+
     .isImmNum:
     sub al, 48
     jmp .addToStoredImm
+
     .isImmChar:
     sub al, 55
     jmp .addToStoredImm
+    
     .endStoreImm:
-    ;mov al, byte ' '
-    ;call charInt
-    ;pusha
-    ;mov ax, word [IMM_OP1]
-    ;call hprep
-    ;call hprint
-    ;popa
-    ;pusha
-    ;mov ax, word [IMM_OP2]
-    ;call hprep
-    ;call hprint
-    ;popa
     xor ax, ax
 ret
 
@@ -1124,7 +1114,7 @@ jmp .NotSreg
 or word [INST_FLAG], 1000000000000000b
 jmp .NotSreg
 .Op2Sreg:
-or word [INST_FLAG_2], 1b
+or word [INST_FLAG_2], 0b
 .NotSreg:
 popa
 ret
@@ -1280,8 +1270,21 @@ xor cx, cx
     bt word [INST_FLAG], 11
     jnc .normalLbl
 
-    .normalLbl:
+    push si
+    .findLblSpace:
+    inc si
+    cmp [si], byte ' '
+    je .getLbl2Index
 
+    .getLbl2Index:
+    inc si
+    cmp [si], byte 2
+    je .test2ndLbl
+    pop si ;for testing
+    .test2ndLbl:
+
+    .normalLbl:
+    
     .parseLoop:
     xor ax, ax
     cmp [si], byte ' '
@@ -1312,7 +1315,6 @@ xor cx, cx
     add di, dx
     mov [di], byte ' '
     .endparseLbls:
-
 ret
 
 
@@ -1539,10 +1541,6 @@ call .writeByte
 mov al, [MODRM]
 call .writeByte
 ret
-
-cmd: db 'a',0xff,0
-count: db 1
-mov [cmd + count], ah
 
 OP1LBL_MASK dw 1010000000b
 OP2LBL_MASK dw 10100000000b
