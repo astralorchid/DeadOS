@@ -1289,12 +1289,48 @@ xor cx, cx
 
     .gotoLbl2Start:
     inc cx
-    sub si, cx
-    
-    pop cx ;for testing
-    pop si
+    sub si, cx ;si = start of 2nd label
 
+    push di
+    push dx
+
+    mov dx, si ;save si
+    mov di, DEFINE_TYPES ;use di for struct ptr
     
+    .cmpLbl2prep:
+    mov si, dx
+    .cmpLbl2:
+    cmp [si], byte ' '
+    je .endCmpLbl2
+
+    mov al, [di]
+    cmp [si], al
+    jne .cmpLbl2ne
+    inc si
+    inc di
+    jmp .cmpLbl2
+    .cmpLbl2ne:
+    inc di
+    cmp [di], byte ' '
+    jne .cmpLbl2ne
+    add di, 3
+    cmp [di], byte 0
+    jne .cmpLbl2prep
+    ;end of struct
+    ;error here (lbl doesn't exist in struct)
+
+    .endCmpLbl2:
+    inc di
+    mov ax, word [di] ;store proc mem ptr in ax
+    pusha
+    call hprep
+    call hprint
+    popa
+
+    pop dx
+    pop di
+    pop cx
+    pop si
 
     .normalLbl:
     .parseLoop:
@@ -1705,14 +1741,15 @@ db 'ss ', 00000011b
 db 0
 SIZE_DEF:
 db 'by ', 1
-db 'pb ', 2
 db 'wo ', 2
 db 'byte ', 1
 db 'word ', 2
 db 0
 DEFINE_TYPES:
-db 'db ', ;proc address eventually
-db ': ',
+db 'db '
+dw 0xDEAD ;proc address eventually
+db ': '
+dw 0xDEAD
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
