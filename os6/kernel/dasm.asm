@@ -1290,11 +1290,11 @@ xor cx, cx
     .gotoLbl2Start:
     inc cx
     sub si, cx
-
+    
     pop cx ;for testing
     pop si
 
-    .getLbl2Start:
+    
 
     .normalLbl:
     .parseLoop:
@@ -1710,11 +1710,9 @@ db 'wo ', 2
 db 'byte ', 1
 db 'word ', 2
 db 0
-DEFINE_BYTE:
-db 'db '
-db 0
-DEFINE_PROCEDURE:
-db ': '
+DEFINE_TYPES:
+db 'db ', ;proc address eventually
+db ': ',
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
