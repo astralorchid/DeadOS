@@ -79,6 +79,7 @@ INST_FLAG_2:
     -bit 2: DEFINITIVE LABEL
     -bit 1: PROCEDURE LABEL
     -bit 0: OPERAND 2 SREG
+    
 INSTRUCTION ERROR FLAG:
     -bit 5: SEGMENT REG MISUSE
     -bit 4: OPERAND SIZE MISMATCH
@@ -86,6 +87,10 @@ INSTRUCTION ERROR FLAG:
     -bit 2: DUAL MEMORY OPERANDS
     -bit 1: OPEN MEMORY OPERAND
     -bit 0: MAX 1 OPCODE PER INSTRUCTION
+
+SYMBOL TABLE ENTRY:
++:0x0000 - LabelName (space null term)
++:LabelName+1 - 2-BYTE ADDRESS
 
 INSTRUCTION PROCESSING NOTES:
     -Have a local counter for operands and cmp with bits 0-2

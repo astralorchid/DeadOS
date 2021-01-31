@@ -1389,10 +1389,19 @@ ret
     ret
 
 .defineByte:
+    pop si
+    mov di, SYMBOL_TABLE
+    call .findLblInSymTable
+
+    cmp ax, word 0
+    jz .dbAddLblToSymTable
+
+    .dbAddLblToSymTable:
+    call .addLblToSymTable
+ret
+
+.defineProc:
 pop si
-mov di, SYMBOL_TABLE
-call .findLblInSymTable
-cmp ax, word 0
 ret
 
 ;si - start of testing lbl
@@ -1404,6 +1413,28 @@ ret
     .NoLblInSymTable:
     xor ax, ax
     ret
+
+.addLblToSymTable:
+    cmp [di], byte 0
+    je .endOfSymTable
+    inc di
+    jmp .addLblToSymTable
+    .endOfSymTable:
+    movsb
+    cmp [si], byte ' '
+    je .endWriteLblToSymTable
+
+    .endWriteLblToSymTable:
+    movsb
+    mov ax, word [END_BIN]
+    mov word [di], ax
+    push es
+    mov ax, 0x6000
+    mov es, ax
+    mov al, [DEFINE_BYTE]
+    call assembleInstruction.writeByte
+    pop es
+ret
 
 assembleInstruction:
 mov ax, word [INST_FLAG]
@@ -1646,6 +1677,7 @@ IMMEDIATE dw 0
 IMM_OP1 dw 0
 IMM_OP2 dw 0
 DUMP db 0
+DEFINE_BYTE db 0
 HEX_PREFIX db '0x',0
 HEX_PREFIX_LEN equ $-HEX_PREFIX-1
 NUM_DATA equ 3
@@ -1788,7 +1820,7 @@ DEFINE_TYPES:
 db 'db '
 dw dasm.defineByte ;proc address eventually
 db ': '
-dw dasm.defineByte
+dw dasm.defineProc
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
