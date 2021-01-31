@@ -80,7 +80,6 @@ pop ds
 push ds
 mov ax, .fromAssem
 push ax
-mov bx, 0x1337
 jmp [farptr]
 
 mov al, byte '?'
@@ -296,12 +295,10 @@ InputLen dw 0
 asmFile:
 db 'MyLabel db 0x00', 0x0D
 db 'MyLabel db 0x00', 0x0D
-db 'MyLabel db 0x00', 0x0D
-db 'MyLabel db 0x00', 0x0D
+db 'mov ax, word 0x6000', 0x0D,
+db 'mov ds ax', 0x0D,
 db 'mov [ 0x0000 ], 0x11', 0x0D
-db 'mov [ MyLabel ], 0x11', 0x0D
 db 'mov ax, word 0x1000', 0x0D,
-db 'hello', 0x0D
 db 'mov ds ax', 0x0D,
 db 'retf', 0x0D, 0x00
 db 0x00
