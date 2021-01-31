@@ -1395,8 +1395,9 @@ ret
 
     cmp ax, word 0
     jz .dbAddLblToSymTable
-
+ret
     .dbAddLblToSymTable:
+    mov di, SYMBOL_TABLE
     call .addLblToSymTable
 ret
 
@@ -1407,9 +1408,31 @@ ret
 ;si - start of testing lbl
 ;di - start of symbol table struct
 .findLblInSymTable:
+    mov dx, si
     cmp [di], byte 0
     je .NoLblInSymTable
 
+    .findLblSpaceInSymTable:
+    mov al, [si]
+    cmp [di], al
+    je .equLblInSymTable
+    mov si, dx
+    inc di
+    cmp [di], byte 0
+    je .NoLblInSymTable
+    cmp [di], byte ' '
+    add di, 3
+    jmp .findLblSpaceInSymTable
+    .equLblInSymTable:
+    cmp [di], byte ' '
+    je .LblAlreadyInSymTable
+    inc si
+    inc di
+    jmp .findLblSpaceInSymTable
+    .LblAlreadyInSymTable:
+    xor ax, ax
+    inc ax
+    ret
     .NoLblInSymTable:
     xor ax, ax
     ret
@@ -1423,7 +1446,7 @@ ret
     movsb
     cmp [si], byte ' '
     je .endWriteLblToSymTable
-
+    jmp .endOfSymTable
     .endWriteLblToSymTable:
     movsb
     mov ax, word [END_BIN]
