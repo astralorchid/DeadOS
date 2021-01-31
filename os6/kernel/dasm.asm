@@ -1270,26 +1270,15 @@ xor cx, cx
     bt word [INST_FLAG], 11
     jnc .normalLbl
 
+    mov al, 2
+    call .findLbl
+    cmp ax, word 0
+    jnz .found2ndLbl
+    ;error here
+    ret
+    .found2ndLbl:
     push si
-    push cx ;use as label length counter
-    .findLblSpace:
-    cmp [si], byte ' '
-    je .getLbl2Index
-    inc si
-    inc cx
-    jmp .findLblSpace
-
-    .getLbl2Index:
-    inc si
-    cmp [si], byte 2
-    je .gotoLbl2Start
-    inc si
-    xor cx, cx ;reset label length counter
-    jmp .findLblSpace
-
-    .gotoLbl2Start:
-    inc cx
-    sub si, cx ;si = start of 2nd label
+    mov si, ax
 
     push di
     push dx
@@ -1321,16 +1310,14 @@ xor cx, cx
 
     .endCmpLbl2:
     inc di
-    mov ax, word [di] ;store proc mem ptr in ax
-    pusha
-    call hprep
-    call hprint
-    popa
+    mov bx, word [di] ;store proc mem ptr in ax
 
     pop dx
     pop di
-    pop cx
-    pop si
+    ;pop cx
+    ;pop si
+
+    jmp bx; address in DEFINE_TYPES struct
 
     .normalLbl:
     .parseLoop:
@@ -1365,6 +1352,58 @@ xor cx, cx
     .endparseLbls:
 ret
 
+;al = label #
+.findLbl:
+    push si
+    push cx ;use as label length counter
+.findLblSpace:
+    cmp [si], byte ' '
+    je .getLbl2Index
+    cmp [si], byte 0
+    je .LblNotFound
+    inc si
+    inc cx
+    jmp .findLblSpace
+
+    .getLbl2Index:
+    inc si
+    cmp [si], al
+    je .gotoLbl2Start
+    inc si
+    xor cx, cx ;reset label length counter
+    jmp .findLblSpace
+
+    .LblNotFound:
+    pop cx
+    pop si
+    ;error lbl not found
+    xor ax, ax
+    ret
+
+    .gotoLbl2Start:
+    inc cx
+    sub si, cx ;si = start of 2nd label
+    mov ax, si
+    pop cx
+    pop si
+    ret
+
+.defineByte:
+pop si
+mov di, SYMBOL_TABLE
+call .findLblInSymTable
+cmp ax, word 0
+ret
+
+;si - start of testing lbl
+;di - start of symbol table struct
+.findLblInSymTable:
+    cmp [di], byte 0
+    je .NoLblInSymTable
+
+    .NoLblInSymTable:
+    xor ax, ax
+    ret
 
 assembleInstruction:
 mov ax, word [INST_FLAG]
@@ -1747,9 +1786,9 @@ db 'word ', 2
 db 0
 DEFINE_TYPES:
 db 'db '
-dw 0xDEAD ;proc address eventually
+dw dasm.defineByte ;proc address eventually
 db ': '
-dw 0xDEAD
+dw dasm.defineByte
 db 0
 TOKEN_FLAG_PROC:
 dw dasm.startToken
