@@ -89,7 +89,7 @@ INSTRUCTION ERROR FLAG:
     -bit 0: MAX 1 OPCODE PER INSTRUCTION
 
 SYMBOL TABLE ENTRY:
-+:0x0000 - LabelName (space null term)
++:0x0000 - LabelName (space terminator)
 +:LabelName+1 - 2-BYTE ADDRESS
 
 INSTRUCTION PROCESSING NOTES:

@@ -80,6 +80,28 @@ pop ds
 push ds
 mov ax, .fromAssem
 push ax
+mov ax, 0x6000
+mov word [farptr], ax
+mov ax, word [ENTRY_OFFSET]
+
+mov word [farptr+2], ax
+
+mov ax, word [farptr+2]
+pusha
+call hprep
+call hprint
+mov al, byte '*'
+call charInt
+popa
+mov ax, word [farptr]
+pusha
+call hprep
+call hprint
+mov al, byte '*'
+call charInt
+popa
+mov ds, ax
+mov bx, word [farptr]
 jmp [farptr]
 
 mov al, byte '?'
@@ -102,7 +124,8 @@ call charInt
 jmp $
 
 farptr:
-dd 0x60000000
+dw 0x6000
+dw 0x0000
 setInput:
 pop ax
 mov [enableInputSeg], ax
@@ -298,7 +321,6 @@ db 'MyLabel2 db 0x00', 0x0D
 db 'MyLabel3 db 0x00', 0x0D
 db 'mov ax, word 0x6000', 0x0D,
 db 'mov ds ax', 0x0D,
-db 'mov [ 0x0000 ], 0x11', 0x0D
 db 'mov ax, word 0x1000', 0x0D,
 db 'mov ds ax', 0x0D,
 db 'retf', 0x0D, 0x00

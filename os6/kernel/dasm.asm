@@ -594,6 +594,12 @@ jnz .retWithErr
     call .parseLabels
     popa
 
+    bt word [INST_FLAG_2], 2
+    cmovc ax, word [END_BIN]
+    jnc .skipEntryOffset
+    mov word [ENTRY_OFFSET], ax
+    .skipEntryOffset:
+
     pusha
     push es
     push ds
@@ -652,7 +658,6 @@ ret
     xor ax, ax
     inc ax
 ret
-
 
 .clearToken:
     push ax
@@ -1320,35 +1325,6 @@ xor cx, cx
     jmp bx; address in DEFINE_TYPES struct
 
     .normalLbl:
-    .parseLoop:
-    xor ax, ax
-    cmp [si], byte ' '
-    cmovne ax, word [si]
-    cmp al, byte 0
-    je .endOfLbl
-    inc cx
-    mov dx, cx ;save cx
-    push ax
-    inc si
-    jmp .parseLoop
-
-    .endOfLbl:
-    cmp cx, word 0
-    jg .popLblStack
-    jle .endparseLbl
-    .popLblStack:
-    pop ax
-    push di
-    add di, cx
-    dec di
-    mov [di], al
-    pop di
-    dec cx
-    jmp .endOfLbl
-    .endparseLbl:
-
-    add di, dx
-    mov [di], byte ' '
     .endparseLbls:
 ret
 
@@ -1400,6 +1376,8 @@ ret
     .dbAddLblToSymTable:
     mov di, SYMBOL_TABLE
     call .addLblToSymTable
+
+    or word [INST_FLAG_2], 100b
 ret
 
 .defineProc:
@@ -1695,6 +1673,7 @@ ret
 OP1LBL_MASK dw 1010000000b
 OP2LBL_MASK dw 10100000000b
 END_BIN dw 0
+ENTRY_OFFSET dw 0
 TOKEN_FLAG dw 0
 INST_ERR_FLAG dw 0
 INST_FLAG dw 0b
