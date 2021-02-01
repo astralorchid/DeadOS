@@ -1386,13 +1386,14 @@ ret
     mov ax, si
     pop cx
     pop si
-    ret
+ret
 
 .defineByte:
     pop si
     mov di, SYMBOL_TABLE
+    mov dx, si ;save si
     call .findLblInSymTable
-
+    mov si, dx
     cmp ax, word 0
     jz .dbAddLblToSymTable
 ret
@@ -1408,27 +1409,25 @@ ret
 ;si - start of testing lbl
 ;di - start of symbol table struct
 .findLblInSymTable:
-    mov dx, si
-    cmp [di], byte 0
-    je .NoLblInSymTable
-
-    .findLblSpaceInSymTable:
     mov al, [si]
+    cmp [di], byte ' '
+    je .checkEquSpaces
     cmp [di], al
-    je .equLblInSymTable
-    mov si, dx
-    inc di
-    cmp [di], byte 0
-    je .NoLblInSymTable
-    cmp [di], byte ' '
-    add di, 3
-    jmp .findLblSpaceInSymTable
-    .equLblInSymTable:
-    cmp [di], byte ' '
-    je .LblAlreadyInSymTable
+    jne .tryNextLbl
     inc si
     inc di
-    jmp .findLblSpaceInSymTable
+    jmp .findLblInSymTable
+    .tryNextLbl:
+    cmp [di], byte ' '
+    je .jmpOverAddress
+    cmp [di], byte 0
+    je .NoLblInSymTable
+    inc di
+    jmp .tryNextLbl
+    .jmpOverAddress:
+    add di, 3
+    mov si, dx
+    jmp .findLblInSymTable
     .LblAlreadyInSymTable:
     xor ax, ax
     inc ax
@@ -1437,16 +1436,26 @@ ret
     xor ax, ax
     ret
 
+    .checkEquSpaces:
+    cmp [si], byte ' '
+    je .LblAlreadyInSymTable
+    jmp .tryNextLbl
+
 .addLblToSymTable:
+    cmp [di], byte ' '
+    je .jmpOverSymAddr
     cmp [di], byte 0
-    je .endOfSymTable
+    je .writeLblToSymTable
     inc di
     jmp .addLblToSymTable
-    .endOfSymTable:
-    movsb
+    .jmpOverSymAddr:
+    add di, 3
+    jmp .addLblToSymTable
+    .writeLblToSymTable:
     cmp [si], byte ' '
     je .endWriteLblToSymTable
-    jmp .endOfSymTable
+    movsb
+    jmp .writeLblToSymTable
     .endWriteLblToSymTable:
     movsb
     mov ax, word [END_BIN]
