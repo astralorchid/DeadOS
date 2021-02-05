@@ -1439,7 +1439,7 @@ ret
     mov ax, word [END_BIN]
     mov word [di], ax
     push es
-    mov ax, 0x6000
+    mov ax, 0x6000 ;output binary segment
     mov es, ax
     mov al, [DEFINE_BYTE]
     call assembleInstruction.writeByte
