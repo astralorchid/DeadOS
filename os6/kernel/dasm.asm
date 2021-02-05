@@ -1325,6 +1325,9 @@ xor cx, cx
     jmp bx; address in DEFINE_TYPES struct
 
     .normalLbl:
+    call sprint
+    mov al, byte '^'
+    call charInt
     .endparseLbls:
 ret
 
@@ -1381,7 +1384,19 @@ ret
 ret
 
 .defineProc:
-pop si
+    pop si
+    mov di, SYMBOL_TABLE
+    mov dx, si
+    call .findLblInSymTable
+    mov si, dx
+    cmp ax, word 0
+    jz .AddProcLblToSymTable
+    .AddProcLblToSymTable:
+    mov di, SYMBOL_TABLE
+    call .addLblToSymTable
+
+    or word [INST_FLAG_2], 10b
+ret
 ret
 
 ;si - start of testing lbl
@@ -1436,7 +1451,8 @@ ret
     jmp .writeLblToSymTable
     .endWriteLblToSymTable:
     movsb
-    mov ax, word [END_BIN]
+    ;mov ax, word [END_BIN]
+    mov ax, word 0x1111
     mov word [di], ax
     push es
     mov ax, 0x6000 ;output binary segment
@@ -1444,6 +1460,29 @@ ret
     mov al, [DEFINE_BYTE]
     call assembleInstruction.writeByte
     pop es
+ret
+
+.addProcLblToSymTable:
+    cmp [di], byte ' '
+    je .jmpOverSymAddr2
+    cmp [di], byte 0
+    je .writeProcLblToSymTable
+    inc di
+    jmp .addProcLblToSymTable
+    .jmpOverSymAddr2:
+    add di, 3
+    jmp .addProcLblToSymTable
+    .writeProcLblToSymTable:
+    cmp [si], byte ' '
+    je .endWriteProcLblToSymTable
+    movsb
+    jmp .writeProcLblToSymTable
+    .endWriteProcLblToSymTable:
+    movsb
+    ;mov ax, word [END_BIN]
+    mov ax, word 0x1111
+    inc ax
+    mov word [di], ax
 ret
 
 assembleInstruction:

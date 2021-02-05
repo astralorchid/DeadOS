@@ -318,7 +318,8 @@ InputLen dw 0
 asmFile:
 db 'MyLabel db 0x00', 0x0D
 db 'MyLabel2 db 0x00', 0x0D
-db 'MyLabel3 db 0x00', 0x0D
+db 'start: ', 0x0D
+db 'mov word [MyLabel], word 0x2222', 0x0D
 db 'mov ax, word 0x6000', 0x0D,
 db 'mov ds ax', 0x0D,
 db 'mov ax, word 0x1000', 0x0D,
