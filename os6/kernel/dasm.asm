@@ -1325,7 +1325,7 @@ xor cx, cx
     jmp bx; address in DEFINE_TYPES struct
 
     .normalLbl:
-    call sprint
+    ;call sprint
     mov al, byte '^'
     call charInt
     .endparseLbls:
