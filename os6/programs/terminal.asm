@@ -125,12 +125,14 @@ jmp $
 farptr:
 dw 0x6000
 dw 0x0000
+
 setInput:
 pop ax
 mov [enableInputSeg], ax
 pop ax
 mov [enableInputOff], ax
-
+pop ax
+mov [startProgramFromTerminal], ax
 call getInitVideoMode
 
 mov si, msg
@@ -300,6 +302,25 @@ popa
 call newLine
 ret
 
+runcmd:
+    cli
+    mov si, command
+    add si, 3
+    int 0x23
+
+    mov al, 0x00
+    mov di, command
+    mov cx, word [InputLen]
+    rep stosb
+    mov [InputLen], word 0
+
+    xor ax, ax
+    push ax
+    mov ax, word [startProgramFromTerminal]
+    push ax
+    retf
+ret
+
 
 msg db 'WELCOME TO DEADOS', 0
 SS_STR db 'SS: ', 0
@@ -307,6 +328,7 @@ SP_STR db 'SP: ', 0
 BP_STR db 'BP: ', 0
 enableInputOff dw 0
 enableInputSeg dw 0
+startProgramFromTerminal dw 0
 isShift db 0
 isReturn db 0
 Scancode db 0
@@ -346,6 +368,8 @@ cmdTable:
     dw clrcmd
     db 'stk', 0
     dw stkcmd
+    db 'run', 0
+    dw runcmd
     db 0,0,0,0
 command:
 times (512*MAX_SECTORS)-($-$$) db 0

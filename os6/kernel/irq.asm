@@ -20,6 +20,10 @@ irq:
             mov dx, 0
             call .ENABLE_IRQx
 
+            mov bl, [IRQ_MASKS+2]
+            mov dx, 0
+            call .ENABLE_IRQx
+
             call .ENABLE_MASTER_PIC
             call .ENABLE_SLAVE_PIC
         sti
@@ -62,6 +66,14 @@ irq:
         mov bx, word irq22_ivt
         call irq.MAP_IRQx
 
+        mov ax, word .writeProgramToLoad
+        mov bx, word irq23_ivt
+        call irq.MAP_IRQx
+
+        mov ax, word .GPF
+        mov bx, word GPF_IVT
+        call irq.MAP_IRQx
+
         mov si, MAP_KERNEL_STR
         call sprint
         call newLine
@@ -83,7 +95,8 @@ irq:
     .irq0:
         pusha
             ;code to run here
-
+            mov al, byte 'e'
+            call charInt
             mov al, 0x20
             out PIC0, al  
         popa
@@ -163,7 +176,6 @@ iret
     push ax
     xor ax, ax
     mov ds, ax
-
     in al, 01100000b
 
     test al, 10000000b
@@ -255,9 +267,17 @@ push ax
 xor ax, ax
 mov ds, ax
 pop ax
+
     call pmalloc
     ;error handler here
     mov es, bx
+
+    mov si, ProgramToLoad
+    cmp [si], byte 'T'
+    je .ok
+    mov bx, 0x2000
+    mov es, bx
+    .ok:
     call getPDTEntryByName
     ;error handler here
     mov cl, byte [bx]
@@ -269,18 +289,49 @@ pop ax
 pop ds
 iret
 
+.writeProgramToLoad:
+cli
+    push es
+    push ax
+    xor ax, ax
+    mov es, ax
+    pushf
+    cld
+    mov di, ProgramToLoad
+    mov cx, 8
+    rep movsb
+    popf
+    pop ax
+    pop es
+    sti
+iret
+
+.spurious:
+    mov al, 01100001b
+    out 0x20, al
+iret
+
+.GPF:
+mov al, byte 'F'
+call charInt
+jmp $
+iret
 
 %include '../driver/keyboard.asm'
 irq0_ivt equ 0x0020
 irq1_ivt equ 0x0024
+irq7_ivt equ 0x003C
 irq20_ivt equ 0x0080
 irq21_ivt equ 0x0084
 irq22_ivt equ 0x0088
+irq23_ivt equ 0x008C
+GPF_IVT equ 0x0034
 IRQ_MASKS:
     db 00000001b
     db 00000010b
+    db 10000000b
 IRQ_FLAGS:
-    db 00000011b
+    db 10000011b
 IRQ_SLAVE_FLAGS:
     db 00000000b
 IRQ_FLAGS_STR db 'IRQ FLAG WORD STATUS ', 0 

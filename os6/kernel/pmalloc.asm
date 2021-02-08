@@ -3,49 +3,32 @@ push ds
 push es
     xor ax, ax
     mov ds, ax
-
     ;es:di
     ;ds:si
 
-    mov ax, word [SEGMENT_START]
+    mov ax, 0x1000
     mov bx, word [SEGMENT_LIMIT]
     mov cx, word [SEGMENT_SIZE]
 
-    .checkForProgram:
-    push ax
-    push bx
-    push cx
-
+.checkForProgram:
     mov es, ax
-    mov bx, 0
-    mov di, bx
+    xor di, di
     mov si, PROGRAM_STR
-    mov cx, PROGRAM_STR_LEN
-
-    rep cmpsb
-
-    cmp cx, 0
-    jz .isLoaded
-
-    mov dx, ax
-    pop cx
-    pop bx
-    pop ax
-    mov bx, dx
-    jmp .endpmalloc
-
-    .isLoaded:
-    pop cx
-    pop bx
-    pop ax
-
-    add ax, cx
-    cmp ax, bx
-    jg .atMemoryLimit
+    xor dh, dh
+.cmpProgramLoop:
+    mov dl, [di]
+    cmp [si], dl
+    jne .noProgramLoaded
+    inc di
+    inc si
+    cmp [si], byte 0
+    jz .programLoaded
+    jmp .cmpProgramLoop
+.programLoaded:
+    add ax, 0x1000
     jmp .checkForProgram
-
-    .atMemoryLimit:
-    mov bx, 0
+.noProgramLoaded:
+mov bx, ax
     .endpmalloc:
 pop es
 pop ds

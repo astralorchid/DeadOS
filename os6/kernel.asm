@@ -39,16 +39,25 @@ call hprep
 call hprint
 call newLine
 popa
+
 call irq.driver
 
-call irq.printEnabledIRQ
-
+;mov si, 0x0026
+;mov ax, word [si]
+;call hprep
+;call hprint
+;jmp $
 call pdt.map
 call pdt.print
 ;start terminal using program loading procedures
-
+startProgram:
+    xor ax, ax
+    mov ds, ax
+    cli
     int 0x22
-
+    sti
+    mov ax, startProgram
+    push ax
     mov ax, mapProgramInput
     push ax
     push ds

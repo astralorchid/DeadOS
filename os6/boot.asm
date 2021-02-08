@@ -92,9 +92,9 @@ loadProgram:
     pop ax
     xor ch, ch
     dec cx
-    mov [DAP.word1], word cx ;start from sector
-    mov [DAP.offset], word bx;offset dest
-    mov [DAP.segment], word es
+    mov word [DAP.word1], word cx ;start from sector
+    mov word [DAP.offset], word bx;offset dest
+    mov word [DAP.segment], word es
     mov si, DAP
     int 0x13
 ret
