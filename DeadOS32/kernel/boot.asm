@@ -88,8 +88,6 @@ loadProgram:
     int 0x13
 ret
 
-jmp $
-
 DRIVE db 0
 KERNEL_RESERVE_SECTORS equ 10
 KERNEL_START equ 0x7e00
