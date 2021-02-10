@@ -83,7 +83,7 @@ EnableNMI:
     dec cx
     jmp .loop
     .end:
-    
+
 jmp $
 
 ClearVGATextMode:
@@ -149,6 +149,8 @@ cprint:
 ret
 
 VGA_MEMORY equ 0xB8000
+VGA_BUFFER equ 0x100000
+VGA_BUFFER_SIZE equ 8000
 VGA_TXT_MODE_SIZE_X equ 80
 VGA_TXT_MODE_SIZE_Y equ 25
 CURSOR_POS_X dd 0
