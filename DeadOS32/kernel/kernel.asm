@@ -65,12 +65,25 @@ start32:
     mov ss, ax
     mov ebp, dword 0x7c00
     mov esp, ebp
+
 EnableNMI:
     in al, 0x70
     and al, 0x7F
     out 0x70, al
     call ClearVGATextMode
-    call UpdateCursor
+
+    mov cx, 165
+    .loop:
+    cmp cx, word 0
+    jne .dec
+    jmp .end
+    .dec:
+    mov al, byte 'a'
+    call cprint
+    dec cx
+    jmp .loop
+    .end:
+    
 jmp $
 
 ClearVGATextMode:
@@ -83,28 +96,62 @@ ClearVGATextMode:
     rep stosw
 ret
 
-UpdateCursor:
+GetCursorPos:
     mov eax, dword [CURSOR_POS_X]
     mov ebx, dword VGA_MEMORY
     mov ecx, dword [CURSOR_POS_Y]
-    mul ecx
+    .compare:
+    cmp ecx, 0
+    jne .addY
+    jmp .end
+    .addY:
+    add eax, 80
+    dec ecx
+    jmp .compare
+    .end:
     add eax, eax
     add ebx, eax
-    times 2 dec ebx
+ret
+
+UpdateCursor:
+    pusha
+    call GetCursorPos
+    mov cx, word 00001111b
+    mov dx, word 10000000b
     cmp [ebx], byte 0
+    cmovnz ax, dx
+    cmovz ax, cx
     jnz .byteOccupied
     mov [ebx], byte '_'
-    mov [ebx+1], byte 00001111b
-    jmp .end
 .byteOccupied:
-    mov [ebx+1], byte 10000000b
-.end:
+    mov [ebx+1], al
+    popa
+ret
+
+cprint:
+    pusha
+    push eax
+    call GetCursorPos
+    pop eax
+    mov [ebx], al
+    mov edx, 1
+    xor eax, eax
+    mov ecx, dword [CURSOR_POS_X]
+    xor ebx, ebx
+    cmp ecx, VGA_TXT_MODE_SIZE_X
+    cmovge eax, edx
+    cmove ecx, ebx
+    add dword [CURSOR_POS_Y], eax
+    inc ecx
+    mov dword [CURSOR_POS_X], ecx
+    call UpdateCursor
+    popa
 ret
 
 VGA_MEMORY equ 0xB8000
 VGA_TXT_MODE_SIZE_X equ 80
 VGA_TXT_MODE_SIZE_Y equ 25
-CURSOR_POS_X dd 1
-CURSOR_POS_Y dd 1
+CURSOR_POS_X dd 0
+CURSOR_POS_Y dd 0
 LAST_CURSOR_POS_X dd 0
 LAST_CURSOR_POS_Y dd 0
