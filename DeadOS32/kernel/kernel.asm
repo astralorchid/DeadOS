@@ -72,17 +72,8 @@ EnableNMI:
     out 0x70, al
     call ClearVGATextMode
 
-    mov cx, 165
-    .loop:
-    cmp cx, word 0
-    jne .dec
-    jmp .end
-    .dec:
-    mov al, byte 'a'
-    call cprint
-    dec cx
-    jmp .loop
-    .end:
+mov si, hello
+call sprint
 
 jmp $
 
@@ -148,6 +139,30 @@ cprint:
     popa
 ret
 
+newline:
+    
+ret
+
+;si - char*
+sprint:
+    xor ax, ax
+    xor bx, bx
+    inc ax
+    inc bx
+    cmp [si], byte 0
+    jz .end
+    cmovnz ax, word [si]
+    cmovnz cx, bx
+    push si
+    call cprint
+    add si, cx
+    pop dx
+    cmp si, dx
+    je .end
+    jmp sprint
+.end:
+ret
+
 VGA_MEMORY equ 0xB8000
 VGA_BUFFER equ 0x100000
 VGA_BUFFER_SIZE equ 8000
@@ -157,3 +172,4 @@ CURSOR_POS_X dd 0
 CURSOR_POS_Y dd 0
 LAST_CURSOR_POS_X dd 0
 LAST_CURSOR_POS_Y dd 0
+hello db 'Hello world!', 0
