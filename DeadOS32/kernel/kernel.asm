@@ -54,8 +54,8 @@ GDT_DESCRIPTOR:
 CODESEG equ GDT_CODE_ENTRY - GDT_NULL_DESC
 DATASEG equ GDT_DATA_ENTRY - GDT_NULL_DESC
 
-[bits 32]
-
+[bits 32] ;PROTECTED MODE ENTRY POINT
+;LEO MORACOLLI
 start32:
     mov ax, DATASEG
     mov ds, ax
@@ -63,15 +63,48 @@ start32:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-
+    mov ebp, dword 0x7c00
+    mov esp, ebp
 EnableNMI:
     in al, 0x70
     and al, 0x7F
     out 0x70, al
-
+    call ClearVGATextMode
+    call UpdateCursor
 jmp $
 
-VGA_TXT_MODE_SIZE_X db 80
-VGA_TXT_MODE_SIZE_Y db 25
-CURSOR_POS_X db 0
-CURSOR_POS_Y db 0
+ClearVGATextMode:
+    mov eax, VGA_TXT_MODE_SIZE_X
+    mov ecx, VGA_TXT_MODE_SIZE_Y
+    mul ecx
+    mov ecx, eax
+    mov ax, 0x0F00
+    mov edi, VGA_MEMORY
+    rep stosw
+ret
+
+UpdateCursor:
+    mov eax, dword [CURSOR_POS_X]
+    mov ebx, dword VGA_MEMORY
+    mov ecx, dword [CURSOR_POS_Y]
+    mul ecx
+    add eax, eax
+    add ebx, eax
+    times 2 dec ebx
+    cmp [ebx], byte 0
+    jnz .byteOccupied
+    mov [ebx], byte '_'
+    mov [ebx+1], byte 00001111b
+    jmp .end
+.byteOccupied:
+    mov [ebx+1], byte 10000000b
+.end:
+ret
+
+VGA_MEMORY equ 0xB8000
+VGA_TXT_MODE_SIZE_X equ 80
+VGA_TXT_MODE_SIZE_Y equ 25
+CURSOR_POS_X dd 1
+CURSOR_POS_Y dd 1
+LAST_CURSOR_POS_X dd 0
+LAST_CURSOR_POS_Y dd 0
