@@ -62,12 +62,7 @@ PrintMemoryMap:
     jmp PrintMemoryMap
 .end:
 
-mov eax, dword [MEM_MAP_ENTRY_TYPE]
-    ror eax, 16
-    call h16
-    ror eax, 16
-    call h16
-jmp $
+;jmp $ ;MEMORY MAP
 
 DisableVGACursor:
     mov ah, 0x01
@@ -246,7 +241,8 @@ ret
 hstring db 0
 hcounter dw 4
 defaultVideoMode db 0
-
+;ax
+;bx
 GDT_NULL_DESC:
     dd 0
     dd 0
@@ -278,19 +274,35 @@ GDT_USER_DATA_ENTRY:
     db 11110010b
     db 11001111b
     db 00
+GDT_TSS_ENTRY:
+    dw 0x64
+    dw GDT_TSS
+    db 0x00
+    db 10000001b
+    db 11000000b
+    db 00
 GDT_END:
 
 GDT_DESCRIPTOR:
     dw GDT_END - GDT_NULL_DESC - 1
     dd GDT_NULL_DESC
 
+GDT_TSS:
+dd 0
+dd 0x7c00
+dd DATASEG
+times 28 dd 0
+dd 0x00640000
 CODESEG equ GDT_CODE_ENTRY - GDT_NULL_DESC
 DATASEG equ GDT_DATA_ENTRY - GDT_NULL_DESC
-
+TSSSEG equ GDT_TSS_ENTRY - GDT_NULL_DESC
 [bits 32] ;PROTECTED MODE ENTRY POINT
 ;LEO MORACOLLI
 start32:
-    mov ax, 0x10
+    mov ax, TSSSEG
+    ltr ax
+
+    mov ax, DATASEG
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -299,10 +311,6 @@ start32:
     mov ebp, dword 0x7c00
     mov esp, ebp
 
-EnableNMI:
-    in al, 0x70
-    and al, 0x7F
-    out 0x70, al
     call ClearVGATextMode
 
 mov si, hello
