@@ -1,0 +1,2 @@
+db 0xc7, 0xc0
+mov ax, 0

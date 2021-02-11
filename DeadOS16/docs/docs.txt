@@ -1,0 +1,123 @@
+readProgram:
+    ah = 0 or 1
+        0: read head 0
+        1: inc through heads
+    bx = sector offset
+    dh = head
+    -Loads sector at 0000:1000
+
+pdt.isProgram:
+    -Checks if the loaded sector at 0:1000 is a program
+    -outputs bx = 0 or 1
+        0: no program
+        1: program
+
+
+0x0000:0x0500 - Program Descriptor Table:
++:0x0000 - Start sector (byte)
++:0x0001 - Head (byte)
++:0x0002 - Program name (string byte)
++:0x000A - Program name null term
++:0x000B - Running segment (word)
++:0x000D - Program keyboard input handler offset (word)
++:0x000F - Current program (0/1 = false/true)
++:0x0010 - # sectors
+
+Program load procedure @ offset 0x0020
+
+Program header:
++:0x0000: program
++:0x0007: null
++:0x0008: program name
++:0x0010: null
++:0x0011: # sectors
++:0x0012: null
+
+Program interrupts:
+0x20: get program list
+0x21: scancode to ascii converter
+0x22: load program
+
+TOKEN FLAG:
+    -bit 15: is char
+    -bit 14: is num
+    -bit 13: is symbol
+    -bit 12: is space/tab
+    -bit 11: is return (0x0D)
+    -bit 10: prev. byte char
+    -bit 9: prev. byte num
+    -bit 8: prev. byte symbol
+    -bit 7: prev. byte space/tab
+    -bit 6: prev. byte return
+    -bit 5: null
+    -bit 4: null
+    -bit 3: null
+    -bit 2: null
+    -bit 1: null
+    -bit 0: on token
+
+INSTRUCTION FLAG:
+-bit 15: OPERAND 1 SREG
+-bit 14: OPERAND 2 SIZE MOD
+-bit 13: OPERAND 1 SIZE MOD
+-bit 12: OPEN MEMORY OPERAND
+-bit 11: POSSIBLE PROC/DEFINITIVE LABEL
+-bit 10: OPERAND 2 POSSIBLE LABEL
+-bit 9: OPERAND 1 POSSIBLE LABEL
+-bit 8: OPERAND 2 IMMEDIATE
+-bit 7: OPERAND 1 IMMEDIATE
+-bit 6: OPERAND 2 TYPE (REG/MEM)
+-bit 5: OPERAND 1 TYPE (REG/MEM)
+-bit 4: OPERAND 2 SIZE (BYTE/WORD)
+-bit 3: OPERAND 1 SIZE (BYTE/WORD)
+-bit 2: VALID 2OP INSTRUCTION
+-bit 1: VALID 1OP INSTRUCTION
+-bit 0: VALID 0OP INSTRUCTION
+
+INST_FLAG_2:
+    -bit 3: 
+    -bit 2: DEFINITIVE LABEL
+    -bit 1: PROCEDURE LABEL
+    -bit 0: OPERAND 2 SREG
+    
+INSTRUCTION ERROR FLAG:
+    -bit 5: SEGMENT REG MISUSE
+    -bit 4: OPERAND SIZE MISMATCH
+    -bit 3: DUAL IMMEDIATE OPERANDS
+    -bit 2: DUAL MEMORY OPERANDS
+    -bit 1: OPEN MEMORY OPERAND
+    -bit 0: MAX 1 OPCODE PER INSTRUCTION
+
+SYMBOL TABLE ENTRY:
++:0x0000 - LabelName (space terminator)
++:LabelName+1 - 2-BYTE ADDRESS
+
+INSTRUCTION PROCESSING NOTES:
+    -Have a local counter for operands and cmp with bits 0-2
+
+TFP: token flag procedure
+PDT: program descriptor Table
+
+to-do list:
+-symbol/label table generation
+-dual immediate handler
+-program backspace
+-pmalloc error handler
+-turn kernel_data into text gfx library for TERMINAL
+
+-build call stacks to optimize
+
+REMINDERS:
+-Remove all spaces, tabs, and returns from a file before starting tokenzier
+
+symbols:
+46 44 91 93 95
+
+-may use existing procedure offset modifier
+    to get to immediate opcode and extension from the
+    already generated base opcode 
+    (more memory but might be a lil faster on runtime) 
+    but i should probably make the source index 
+    (has token in it)
+    spit itself out somewhere 
+    just incase i need the mnemonic
