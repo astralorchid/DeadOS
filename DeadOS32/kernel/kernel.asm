@@ -62,7 +62,7 @@ PrintMemoryMap:
     jmp PrintMemoryMap
 .end:
 
-;jmp $ ;MEMORY MAP
+
 
 DisableVGACursor:
     mov ah, 0x01
@@ -91,156 +91,7 @@ LoadInitalGDT:
 
     jmp 0x8:start32 ;end of real mode
 
-;realmode procedures/gdt
-MEM_MAP_ERR db 'Error building memory map', 0
-MEM_MAP_SIZE dw 0
-MEM_MAP_START equ 0x0500
-
-MEM_MAP_ENTRY_BASE dd 0
-MEM_MAP_ENTRY_SIZE dd 0
-MEM_MAP_ENTRY_TYPE dd 0
-
-Print64BitMemMapEntry:
-    add esi, 4
-    call MemMapHprint
-
-    sub esi, 4
-    call MemMapHprint
-    call newLine16
-ret
-
-h16:
-    pusha
-    call hprep
-    call hprint16
-    popa
-ret
-
-MemMapHprint:
-    mov eax, dword [esi]
-    ror eax, 16
-    call h16
-    ror eax, 16
-    call h16
-ret
-
-MemMapErr:
-    mov si, MEM_MAP_ERR
-    call sprint16
-    jmp $
-
-getInitVideoMode:
-    mov ah, 0x0f
-    int 0x10
-    mov [defaultVideoMode], al
-ret
-
-setInitVideoMode:
-    mov ah, 0x00
-    mov al, [defaultVideoMode]
-    int 0x10
-ret
-
-sprint16:
-    lodsb
-    or al, al
-    jz .end
-    call charInt
-    jmp sprint
-    .end:
-ret
-
-charInt:
-    mov ah, 0x0e
-    mov bh, 0x00
-    int 0x10
-ret
-
-;mov ax, 0x1337
-hprep:
-mov dx, ax
-xor cx, cx
-xor bx, bx
-ret
-hprint16:
-mov bx, hstring
-add bx, [hcounter]
-inc bx
-mov [bx], byte 0
-
-shl al, 4
-shr al, 4 ;isolate low nibble
-add al, 48
-cmp al, 58
-jl .isNum ;may be number
-add al, 7
-cmp al, 91
-jl .isChar
-    .isNum:
-        cmp al, 48 ;check if number
-        jl .hloop ;not number
-        push ax
-        ;call charInt
-    .isChar:
-        cmp al, 65
-        jl .hloop
-        push ax
-        ;call charInt
-.hloop:
-    cmp cl, 1
-    je .endh
-    inc cl
-    mov ax, dx
-    ror al, 4
-    jmp hprint16
-.endh:
-    cmp ch, 1
-    je .highNib
-    jg .endh2
-    inc ch
-    mov ax, dx
-    ror ax, 8
-    jmp hprint16
-.highNib:
-    inc ch
-    mov ax, dx
-    rol ax, 8
-    rol al, 4
-    jmp hprint16
-.endh2:
-    ;mov si, HEX_DEF
-    ;call sprint
-    mov bx, [hcounter]
-    .getStack:
-    cmp bx, 0
-    je .endStack
-    dec bx
-    pop ax
-    call charInt
-    jmp .getStack
-.endStack:
-    ret
-
-getCursorPos16:
-    mov ah, 0x03 ;get cursor position
-    mov bh, 0x00 ;
-    int 0x10
-ret
-
-newLine16:
-    pusha
-    call getCursorPos16
-    mov ah, 0x02
-    mov bh, 0x00
-    inc dh
-    xor dl, dl
-    int 0x10
-    popa
-ret
-
-hstring db 0
-hcounter dw 4
-defaultVideoMode db 0
+%include '..\kernel\print16.asm'
 ;ax
 ;bx
 GDT_NULL_DESC:
@@ -293,15 +144,29 @@ dd 0x7c00
 dd DATASEG
 times 28 dd 0
 dd 0x00640000
+
+IDT_START:
+IDT_ENTRY_1:
+    dw int0 ;isr entry offset 0-15
+    dw CODESEG ;selector
+    db 0 ;0
+    db 10001110b ;attributes
+    dw 0 ;isr entry offset 16-31
+
+    times 2040 db 0
+IDT_END:
+
+IDT_DESCRIPTOR:
+    dw IDT_END - IDT_START - 1
+    dd IDT_START
+
 CODESEG equ GDT_CODE_ENTRY - GDT_NULL_DESC
 DATASEG equ GDT_DATA_ENTRY - GDT_NULL_DESC
 TSSSEG equ GDT_TSS_ENTRY - GDT_NULL_DESC
-[bits 32] ;PROTECTED MODE ENTRY POINT
-;LEO MORACOLLI
-start32:
-    mov ax, TSSSEG
-    ltr ax
 
+[bits 32] ;PROTECTED MODE ENTRY POINT
+start32:
+    
     mov ax, DATASEG
     mov ds, ax
     mov es, ax
@@ -311,10 +176,21 @@ start32:
     mov ebp, dword 0x7c00
     mov esp, ebp
 
-    call ClearVGATextMode
+    mov ax, TSSSEG
+    ltr ax
 
-mov si, hello
+    lidt [IDT_DESCRIPTOR]
+
+EnableNMI:
+    in al, 0x70
+    and al, 0x7F
+    out 0x70, al
+
+    call ClearVGATextMode
+pusha
+mov esi, hello
 call sprint
+popa
 
 jmp $
 
@@ -384,7 +260,6 @@ ret
 
 ;si - char*
 sprint:
-pusha
     xor eax, eax
     xor ebx, ebx
     inc eax
@@ -401,10 +276,17 @@ pusha
     je .end
     jmp sprint
 .end:
-popa
 ret
 
 hprint:
+ret
+
+int0:
+pusha
+mov esi, teststr
+call sprint
+popa
+iret
 
 VGA_MEMORY equ 0xB8000
 VGA_BUFFER equ 0x100000
@@ -416,3 +298,4 @@ CURSOR_POS_Y dd 0
 LAST_CURSOR_POS_X dd 0
 LAST_CURSOR_POS_Y dd 0
 hello db 'Hello world!', 0
+teststr db 'Interrupt 0', 0
