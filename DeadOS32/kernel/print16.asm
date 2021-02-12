@@ -140,8 +140,3 @@ hstring db 0
 hcounter dw 4
 defaultVideoMode db 0
 MEM_MAP_ERR db 'Error building memory map', 0
-MEM_MAP_SIZE dw 0
-MEM_MAP_START equ 0x0500
-MEM_MAP_ENTRY_BASE dd 0
-MEM_MAP_ENTRY_SIZE dd 0
-MEM_MAP_ENTRY_TYPE dd 0

@@ -4,6 +4,37 @@
 call getInitVideoMode
 call setInitVideoMode
 
+call DetectMemory
+call GetMemoryMap
+
+pusha
+mov ax, word [MEM_MAP_SIZE]
+call hprep
+call hprint16
+popa
+call newLine16
+
+mov esi, MEM_MAP_START
+xor eax, eax
+mov ax, word [MEM_MAP_SIZE] 
+add eax, esi
+call PrintMemoryMap
+call DisableVGACursor
+call DisableNMI
+call OpenA20
+
+LoadInitalGDT:
+    cli
+    lgdt [GDT_DESCRIPTOR]
+    mov eax, cr0
+    or al, 1
+    mov cr0, eax
+
+    mov ax, TSSSEG
+    ltr ax
+
+    jmp 0x8:start32 ;end of real mode
+
 DetectMemory:
     mov eax, 0xE820
     mov di, MEM_MAP_START
@@ -15,6 +46,7 @@ DetectMemory:
     cmp eax, dword 0x534D4150
     jne MemMapErr
     add word [MEM_MAP_SIZE], 24
+ret
 
 GetMemoryMap:
     cmp ebx, 0
@@ -29,18 +61,8 @@ GetMemoryMap:
     add word [MEM_MAP_SIZE], 24
     jmp GetMemoryMap
 .end:
+ret
 
-pusha
-mov ax, word [MEM_MAP_SIZE]
-call hprep
-call hprint16
-popa
-call newLine16
-
-mov esi, MEM_MAP_START
-xor eax, eax
-mov ax, word [MEM_MAP_SIZE] 
-add eax, esi
 PrintMemoryMap:
     cmp esi, eax
     jge .end
@@ -61,19 +83,19 @@ PrintMemoryMap:
     pop eax
     jmp PrintMemoryMap
 .end:
-
+ret
 
 
 DisableVGACursor:
     mov ah, 0x01
     mov cx, 0x2607
     int 0x10
-
+ret
 DisableNMI:
     in al, 0x70
     or al, 0x80
     out 0x70, al
-
+ret
 OpenA20:
     in al, 0xD0
     or al, 2
@@ -81,17 +103,8 @@ OpenA20:
     in al, 0x92
     or al, 2
     out 0x92, al
+ret
 
-LoadInitalGDT:
-    cli
-    lgdt [GDT_DESCRIPTOR]
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
-
-    jmp 0x8:start32 ;end of real mode
-
-%include '..\kernel\print16.asm'
 ;ax
 ;bx
 GDT_NULL_DESC:
@@ -105,6 +118,13 @@ GDT_CODE_ENTRY:
     db 11001111b ;LOW BITS LIMIT 16:19, HIGH BITS FLAGS
     db 00 ;BASE 24:31
 GDT_DATA_ENTRY:
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 10010010b
+    db 11001111b
+    db 00
+GDT_DATA_ENTRY_2:
     dw 0xFFFF
     dw 0x0000
     db 0x00
@@ -162,7 +182,16 @@ IDT_DESCRIPTOR:
 
 CODESEG equ GDT_CODE_ENTRY - GDT_NULL_DESC
 DATASEG equ GDT_DATA_ENTRY - GDT_NULL_DESC
+DATASEG2 equ GDT_DATA_ENTRY_2 - GDT_NULL_DESC
 TSSSEG equ GDT_TSS_ENTRY - GDT_NULL_DESC
+
+MEM_MAP_SIZE dw 0
+MEM_MAP_START equ 0x0500
+MEM_MAP_ENTRY_BASE dd 0
+MEM_MAP_ENTRY_SIZE dd 0
+MEM_MAP_ENTRY_TYPE dd 0
+
+%include '..\kernel\print16.asm'
 
 [bits 32] ;PROTECTED MODE ENTRY POINT
 start32:
@@ -175,12 +204,43 @@ start32:
     mov ss, ax
     mov ebp, dword 0x7c00
     mov esp, ebp
-
-    mov ax, TSSSEG
-    ltr ax
-
+    
     lidt [IDT_DESCRIPTOR]
 
+AllocatePageDirectory:
+    xor esi, esi
+    xor edi, edi
+    xor eax, eax
+    mov ecx, 1024
+    mov edx, 000000010b
+    inc eax
+.allocatePageDir:
+    cmp eax, ecx
+    jg .end
+    push eax
+    shl eax, 14
+    or eax, edx
+    mov dword [esi], eax
+    push es
+        push eax
+        mov ax, DATASEG2
+        mov es, ax
+        pop eax
+    mov dword [edi], eax
+    pop es
+    pop eax
+    inc eax
+    add esi, 4
+    add edi, 4
+    jmp .allocatePageDir
+.end:
+
+;xor eax, eax
+;mov cr3, eax
+; 
+;mov eax, cr0
+;or eax, 0x80000001
+;mov cr0, eax
 EnableNMI:
     in al, 0x70
     and al, 0x7F
@@ -191,111 +251,15 @@ pusha
 mov esi, hello
 call sprint
 popa
+int 0
 
 jmp $
 
-ClearVGATextMode:
-    mov eax, VGA_TXT_MODE_SIZE_X
-    mov ecx, VGA_TXT_MODE_SIZE_Y
-    mul ecx
-    mov ecx, eax
-    mov ax, 0x0F00
-    mov edi, VGA_MEMORY
-    rep stosw
-ret
-
-GetCursorPos:
-    mov eax, dword [CURSOR_POS_X]
-    mov ebx, dword VGA_MEMORY
-    mov ecx, dword [CURSOR_POS_Y]
-    .compare:
-    cmp ecx, 0
-    jne .addY
-    jmp .end
-    .addY:
-    add eax, 80
-    dec ecx
-    jmp .compare
-    .end:
-    add eax, eax
-    add ebx, eax
-ret
-
-UpdateCursor:
-    pusha
-    call GetCursorPos
-    mov cx, word 00001111b
-    mov dx, word 10000000b
-    cmp [ebx], byte 0
-    cmovnz ax, dx
-    cmovz ax, cx
-    jnz .byteOccupied
-    mov [ebx], byte '_'
-.byteOccupied:
-    mov [ebx+1], al
-    popa
-ret
-
-cprint:
-    pusha
-    push eax
-    call GetCursorPos
-    pop eax
-    mov [ebx], al
-    mov edx, 1
-    xor eax, eax
-    mov ecx, dword [CURSOR_POS_X]
-    xor ebx, ebx
-    cmp ecx, VGA_TXT_MODE_SIZE_X
-    cmovge eax, edx
-    cmove ecx, ebx
-    add dword [CURSOR_POS_Y], eax
-    inc ecx
-    mov dword [CURSOR_POS_X], ecx
-    call UpdateCursor
-    popa
-ret
-
-;newline procedure?
-
-;si - char*
-sprint:
-    xor eax, eax
-    xor ebx, ebx
-    inc eax
-    inc ebx
-    cmp [esi], byte 0
-    jz .end
-    cmovnz eax, dword [esi]
-    cmovnz ecx, ebx
-    push esi
-    call cprint
-    add esi, ecx
-    pop edx
-    cmp esi, edx
-    je .end
-    jmp sprint
-.end:
-ret
-
-hprint:
-ret
-
 int0:
-pusha
-mov esi, teststr
-call sprint
-popa
+    pusha
+    mov esi, teststr
+    call sprint
+    popa
 iret
 
-VGA_MEMORY equ 0xB8000
-VGA_BUFFER equ 0x100000
-VGA_BUFFER_SIZE equ 8000
-VGA_TXT_MODE_SIZE_X equ 80
-VGA_TXT_MODE_SIZE_Y equ 25
-CURSOR_POS_X dd 0
-CURSOR_POS_Y dd 0
-LAST_CURSOR_POS_X dd 0
-LAST_CURSOR_POS_Y dd 0
-hello db 'Hello world!', 0
-teststr db 'Interrupt 0', 0
+%include '..\kernel\print32.asm'
