@@ -207,40 +207,34 @@ start32:
     
     lidt [IDT_DESCRIPTOR]
 
-AllocatePageDirectory:
-    xor esi, esi
-    xor edi, edi
-    xor eax, eax
-    mov ecx, 1024
-    mov edx, 000000010b
-    inc eax
-.allocatePageDir:
-    cmp eax, ecx
-    jg .end
+mov edi, 0x100000
+mov dword [edi], 0x3
+mov eax, 4
+xor edi, edi
+xor ecx, ecx
+PageTable:
+    cmp ecx, 1024
+    je .end
     push eax
-    shl eax, 14
-    or eax, edx
-    mov dword [esi], eax
-    push es
-        push eax
-        mov ax, DATASEG2
-        mov es, ax
-        pop eax
+    mul ecx
+    mov edi, eax
+    mov eax, 0x1000
+    mul ecx
+    or eax, 3
     mov dword [edi], eax
-    pop es
     pop eax
-    inc eax
-    add esi, 4
-    add edi, 4
-    jmp .allocatePageDir
+    inc ecx
+    jmp PageTable
 .end:
 
-;xor eax, eax
-;mov cr3, eax
-; 
-;mov eax, cr0
-;or eax, 0x80000001
-;mov cr0, eax
+
+
+mov eax, 0x100000
+mov cr3, eax
+ 
+mov eax, cr0
+or eax, 0x80000001
+mov cr0, eax
 EnableNMI:
     in al, 0x70
     and al, 0x7F
