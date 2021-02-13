@@ -35,56 +35,6 @@ LoadInitalGDT:
 
     jmp 0x8:start32 ;end of real mode
 
-DetectMemory:
-    mov eax, 0xE820
-    mov di, MEM_MAP_START
-    xor ebx, ebx
-    mov edx, 0x534D4150
-    mov ecx, 24
-    int 0x15
-    jc MemMapErr
-    cmp eax, dword 0x534D4150
-    jne MemMapErr
-    add word [MEM_MAP_SIZE], 24
-ret
-
-GetMemoryMap:
-    cmp ebx, 0
-    jz .end
-    add di, 24
-    mov eax, 0xE820
-    mov ecx, 24
-    int 0x15
-    jc MemMapErr
-    cmp eax, dword 0x534D4150
-    jne MemMapErr
-    add word [MEM_MAP_SIZE], 24
-    jmp GetMemoryMap
-.end:
-ret
-
-PrintMemoryMap:
-    cmp esi, eax
-    jge .end
-    push eax
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_BASE], eax
-    call Print64BitMemMapEntry
-    add esi, 8
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_SIZE], eax
-    call Print64BitMemMapEntry
-    add esi, 8
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_TYPE], eax
-    call MemMapHprint
-    add esi, 8
-    call newLine16
-    pop eax
-    jmp PrintMemoryMap
-.end:
-ret
-
 
 DisableVGACursor:
     mov ah, 0x01
@@ -185,14 +135,8 @@ DATASEG equ GDT_DATA_ENTRY - GDT_NULL_DESC
 DATASEG2 equ GDT_DATA_ENTRY_2 - GDT_NULL_DESC
 TSSSEG equ GDT_TSS_ENTRY - GDT_NULL_DESC
 
-MEM_MAP_SIZE dw 0
-MEM_MAP_START equ 0x0500
-MEM_MAP_ENTRY_BASE dd 0
-MEM_MAP_ENTRY_SIZE dd 0
-MEM_MAP_ENTRY_TYPE dd 0
-
 %include '..\kernel\print16.asm'
-
+%include '..\kernel\memorymap.asm'
 [bits 32] ;PROTECTED MODE ENTRY POINT
 start32:
     

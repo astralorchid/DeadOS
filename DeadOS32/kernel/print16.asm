@@ -107,15 +107,6 @@ newLine16:
     popa
 ret
 
-Print64BitMemMapEntry:
-    add esi, 4
-    call MemMapHprint
-
-    sub esi, 4
-    call MemMapHprint
-    call newLine16
-ret
-
 h16:
     pusha
     call hprep
@@ -123,20 +114,6 @@ h16:
     popa
 ret
 
-MemMapHprint:
-    mov eax, dword [esi]
-    ror eax, 16
-    call h16
-    ror eax, 16
-    call h16
-ret
-
-MemMapErr:
-    mov si, MEM_MAP_ERR
-    call sprint16
-    jmp $
-
 hstring db 0
 hcounter dw 4
 defaultVideoMode db 0
-MEM_MAP_ERR db 'Error building memory map', 0
