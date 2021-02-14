@@ -1,0 +1,4 @@
+Memory map starts at 0x0
+OFFSET:
+    +0x0 - Base address
+    +0x4 - memory chunk size

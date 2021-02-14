@@ -46,19 +46,30 @@ PrintMemoryMap:
     pop eax
 
     cmp dword [MEM_MAP_ENTRY_TYPE], 1
-    je AllocateFreeMemory
-.continue:
+    je AllocateMemoryMap
     jmp PrintMemoryMap
 .end:
 ret
 
-AllocateFreeMemory:
+AllocateMemoryMap:
+    push esi
+    push eax
     add esi, 4
     cmp dword [esi], 0
     jnz .OL ;don't allocate memory past the 32bit limit
-
+    mov eax, dword [MEM_MAP_ENTRY_BASE]
+    mov esi, dword [MEM_MAP_PTR]
+    mov dword [esi], eax
+    add esi, 4
+    mov eax, dword [MEM_MAP_ENTRY_SIZE]
+    mov dword [esi], eax
+    add esi, 4
+    mov dword [MEM_MAP_PTR], esi
 .OL:
-jmp PrintMemoryMap.continue
+    sub esi, 4
+    pop eax
+    pop esi
+jmp PrintMemoryMap
 
 Print64BitMemMapEntry:
     add esi, 4
@@ -84,8 +95,10 @@ MemMapErr:
 
 
 MEM_MAP_SIZE dw 0
-MEM_MAP_START equ 0x0500
+MEM_MAP_START equ 0x1000
 MEM_MAP_ENTRY_BASE dd 0
 MEM_MAP_ENTRY_SIZE dd 0
 MEM_MAP_ENTRY_TYPE dd 0
 MEM_MAP_ERR db 'Error building memory map', 0
+MEM_MAP_PTR dd MEM_MAP_START
+KERNEL_MEM_PTR dd 0
