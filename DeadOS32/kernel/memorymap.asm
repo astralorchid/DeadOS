@@ -40,15 +40,16 @@ PrintMemoryMap:
     add esi, 8
     mov eax, dword [esi]
     mov dword [MEM_MAP_ENTRY_TYPE], eax
-    call MemMapHprint
+    ;call MemMapHprint
     add esi, 8
-    call newLine16
+    ;call newLine16
     pop eax
-
     cmp dword [MEM_MAP_ENTRY_TYPE], 1
     je AllocateMemoryMap
     jmp PrintMemoryMap
 .end:
+mov esi, 0x1008
+call MemMapHprint
 ret
 
 AllocateMemoryMap:

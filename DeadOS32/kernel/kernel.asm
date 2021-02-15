@@ -19,6 +19,7 @@ xor eax, eax
 mov ax, word [MEM_MAP_SIZE] 
 add eax, esi
 call PrintMemoryMap
+jmp $
 call DisableVGACursor
 call DisableNMI
 call OpenA20
