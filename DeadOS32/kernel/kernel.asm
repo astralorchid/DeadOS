@@ -19,6 +19,8 @@ xor eax, eax
 mov ax, word [MEM_MAP_SIZE] 
 add eax, esi
 call PrintMemoryMap
+mov al, byte 'E'
+call charInt
 jmp $
 call DisableVGACursor
 call DisableNMI

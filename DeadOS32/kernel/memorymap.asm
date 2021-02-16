@@ -26,17 +26,17 @@ GetMemoryMap:
 .end:
 ret
 
-PrintMemoryMap:
+PrintMemoryMap: ;first procedure saves memory
     cmp esi, eax
-    jge .end
+    jge .next
     push eax
     mov eax, dword [esi]
     mov dword [MEM_MAP_ENTRY_BASE], eax
-    call Print64BitMemMapEntry
+    ;call Print64BitMemMapEntry
     add esi, 8
     mov eax, dword [esi]
     mov dword [MEM_MAP_ENTRY_SIZE], eax
-    call Print64BitMemMapEntry
+    ;call Print64BitMemMapEntry
     add esi, 8
     mov eax, dword [esi]
     mov dword [MEM_MAP_ENTRY_TYPE], eax
@@ -47,9 +47,20 @@ PrintMemoryMap:
     cmp dword [MEM_MAP_ENTRY_TYPE], 1
     je AllocateMemoryMap
     jmp PrintMemoryMap
+.next: ;prints the memory map
+    mov esi, MEM_MAP_START
+    mov ecx, esi
+.loop:
+    cmp ecx, dword [MEM_MAP_PTR]
+    jge .end
+    push esi
+    mov esi, ecx
+    call MemMapHprint
+    call newLine16
+    pop esi
+    add ecx, 4
+    jmp .loop
 .end:
-mov esi, 0x1008
-call MemMapHprint
 ret
 
 AllocateMemoryMap:

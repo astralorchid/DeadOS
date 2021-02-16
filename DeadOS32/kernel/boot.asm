@@ -23,7 +23,7 @@ BPB:
 .BkBootSec dw 0x0000
 times 12 db 0  
 BS:                                                                                           
-.DrvNum       dd 0x80
+.DrvNum       db 0x80
 .Reserved1    db 0x00
 .BootSig      db 0x29
 .VolID        dd 0xa0a615c
@@ -33,6 +33,7 @@ BS:
 start:
 xor ax, ax
 mov ds, ax
+mov es, ax
 mov ss, ax
 mov bp, ax
 mov sp, bp
