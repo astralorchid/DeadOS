@@ -1,4 +1,17 @@
-Memory map starts at 0x0
+Free memory map array
 OFFSET:
     +0x0 - Base address
     +0x4 - memory chunk size
+    +0x9 - flag byte:
+        bit 0: 1 - used
+
+FindMemMapEntry:
+    -eax = value
+    -dl:
+        -bit 0: 0 - base, 1 - size
+        -bit 1: 1 - test if equal (strict)
+        -bit 2: 1 - test if equal
+        -bit 3: 0 - test greater than, 1 - test less than
+    returns:
+    -ax: entry offset
+    -dx: 0 if found, 1 if fail

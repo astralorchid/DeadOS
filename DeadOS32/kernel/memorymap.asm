@@ -48,17 +48,23 @@ PrintMemoryMap: ;first procedure saves memory
     je AllocateMemoryMap
     jmp PrintMemoryMap
 .next: ;prints the memory map
+    ;mov esi, MEM_MAP_START
+    ;mov ecx, esi
     mov esi, MEM_MAP_START
-    mov ecx, esi
+    xor ecx, ecx
 .loop:
-    cmp ecx, dword [MEM_MAP_PTR]
-    jge .end
-    push esi
-    mov esi, ecx
-    call MemMapHprint
-    call newLine16
-    pop esi
-    add ecx, 4
+    ;cmp ecx, dword [MEM_MAP_PTR]
+    ;jge .end
+    ;push esi
+    ;mov esi, ecx
+    ;call MemMapHprint
+    ;call newLine16
+    ;add ecx, 4
+    ;mov esi, ecx
+    ;call MemMapHprint
+    ;call newLine16
+    ;add ecx, 5
+    ;pop esi
     jmp .loop
 .end:
 ret
@@ -76,9 +82,11 @@ AllocateMemoryMap:
     mov eax, dword [MEM_MAP_ENTRY_SIZE]
     mov dword [esi], eax
     add esi, 4
+    mov byte [esi], 5
+    inc esi
     mov dword [MEM_MAP_PTR], esi
 .OL:
-    sub esi, 4
+    ;sub esi, 4
     pop eax
     pop esi
 jmp PrintMemoryMap
@@ -105,9 +113,14 @@ MemMapErr:
     call sprint16
     jmp $
 
+;see docs for setup
+FindMemMapEntry:
+
+ret
+
 
 MEM_MAP_SIZE dw 0
-MEM_MAP_START equ 0x1000
+MEM_MAP_START equ 0x2000
 MEM_MAP_ENTRY_BASE dd 0
 MEM_MAP_ENTRY_SIZE dd 0
 MEM_MAP_ENTRY_TYPE dd 0

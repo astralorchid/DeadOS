@@ -19,8 +19,6 @@ xor eax, eax
 mov ax, word [MEM_MAP_SIZE] 
 add eax, esi
 call PrintMemoryMap
-mov al, byte 'E'
-call charInt
 jmp $
 call DisableVGACursor
 call DisableNMI
@@ -154,7 +152,7 @@ start32:
     
     lidt [IDT_DESCRIPTOR]
 
-mov edi, 0x100000
+mov edi, 0x1000
 mov dword [edi], 0x3
 mov eax, 4
 xor edi, edi
@@ -176,7 +174,7 @@ PageTable:
 
 
 
-mov eax, 0x100000
+mov eax, 0x1000
 mov cr3, eax
  
 mov eax, cr0
