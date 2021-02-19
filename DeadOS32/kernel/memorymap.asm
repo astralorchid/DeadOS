@@ -27,54 +27,62 @@ GetMemoryMap:
 ret
 
 PrintMemoryMap: ;first procedure saves memory
+    xor edx, edx
+    xor ebx, ebx
+    inc ebx
+
     cmp esi, eax
     jge .next
     push eax
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_BASE], eax
-    ;call Print64BitMemMapEntry
-    add esi, 8
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_SIZE], eax
-    ;call Print64BitMemMapEntry
-    add esi, 8
-    mov eax, dword [esi]
-    mov dword [MEM_MAP_ENTRY_TYPE], eax
-    ;call MemMapHprint
-    add esi, 8
-    ;call newLine16
+        mov eax, dword [esi]
+        mov dword [MEM_MAP_ENTRY_BASE], eax
+        call Filter64BitRAM
+        mov eax, dword [esi]
+        mov dword [MEM_MAP_ENTRY_SIZE], eax
+        call Filter64BitRAM
+        mov eax, dword [esi]
+        mov dword [MEM_MAP_ENTRY_TYPE], eax
+        add esi, 8
     pop eax
+    cmp edx, 0
+    jnz PrintMemoryMap
     cmp dword [MEM_MAP_ENTRY_TYPE], 1
     je AllocateMemoryMap
     jmp PrintMemoryMap
 .next: ;prints the memory map
-    ;mov esi, MEM_MAP_START
-    ;mov ecx, esi
     mov esi, MEM_MAP_START
     xor ecx, ecx
 .loop:
-    ;cmp ecx, dword [MEM_MAP_PTR]
-    ;jge .end
-    ;push esi
-    ;mov esi, ecx
-    ;call MemMapHprint
-    ;call newLine16
-    ;add ecx, 4
-    ;mov esi, ecx
-    ;call MemMapHprint
-    ;call newLine16
-    ;add ecx, 5
-    ;pop esi
+    cmp esi, dword [MEM_MAP_PTR]
+    jge .end
+    lea eax, [esi + ecx]
+    mov esi, eax
+    call MemMapHprint
+    call newLine16
+    lea eax, [esi + ecx + 4]
+    mov esi, eax
+    call MemMapHprint
+    call newLine16
+    lea eax, [esi + ecx + 4]
+    mov esi, eax
+    mov ax, word [esi]
+    call h16
+    call newLine16
+    inc esi
     jmp .loop
 .end:
+ret
+
+Filter64BitRAM:
+        add esi, 4
+        cmp dword [esi], 0
+        cmovnz edx, ebx
+        add esi, 4
 ret
 
 AllocateMemoryMap:
     push esi
     push eax
-    add esi, 4
-    cmp dword [esi], 0
-    jnz .OL ;don't allocate memory past the 32bit limit
     mov eax, dword [MEM_MAP_ENTRY_BASE]
     mov esi, dword [MEM_MAP_PTR]
     mov dword [esi], eax
@@ -82,7 +90,7 @@ AllocateMemoryMap:
     mov eax, dword [MEM_MAP_ENTRY_SIZE]
     mov dword [esi], eax
     add esi, 4
-    mov byte [esi], 5
+    mov byte [esi], 0
     inc esi
     mov dword [MEM_MAP_PTR], esi
 .OL:

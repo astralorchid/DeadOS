@@ -13,7 +13,6 @@ call hprep
 call hprint16
 popa
 call newLine16
-
 mov esi, MEM_MAP_START
 xor eax, eax
 mov ax, word [MEM_MAP_SIZE] 
@@ -110,11 +109,11 @@ GDT_DESCRIPTOR:
     dd GDT_NULL_DESC
 
 GDT_TSS:
-dd 0
-dd 0x7c00
-dd DATASEG
-times 28 dd 0
-dd 0x00640000
+    dd 0
+    dd 0x7c00
+    dd DATASEG
+    times 28 dd 0
+    dd 0x00640000
 
 IDT_START:
 IDT_ENTRY_1:
