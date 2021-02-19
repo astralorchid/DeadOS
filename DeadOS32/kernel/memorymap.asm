@@ -123,15 +123,73 @@ MemMapErr:
 
 ;see docs for setup
 FindMemMapEntry:
+    xor ebx, ebx
+    xor ecx, ecx
+    xor edi, edi
+    bt dx, 0
+    cmovc bx, [CMOV_SIZE_OFFSET]
+    mov si, MEM_MAP_START
+.findLoop:
+    push si
+    add esi, ebx
+    bt dx, 1
+    cmovc di, [JE_OPCODE]
+    cmp di, 0
+    jnz .startTest
+    bt dx, 2
+    jc .equalTo
+    bt dx, 3
+    cmovc di, [JL_OPCODE]
+    cmovnc di, [JG_OPCODE]
+    cmp di, 0
+    jnz .startTest
+.equalTo:
+    bt dx, 3
+    cmovc di, [JLE_OPCODE]
+    cmovnc di, [JGE_OPCODE]
+    cmp di, 0
+    jnz .startTest
+.startTest:
+    ;mov word [.jmpOpcode], di
+    [bits 32]
+    cmp eax, dword [esi]
+    [bits 16]
+    db 0x0f, 0x84
+    dw .testPass
+    .testFail:
+    pop si
+    add esi, 9
+    cmp esi, [MEM_MAP_PTR]
+    jge .endFail
+    jmp .findLoop
+    .testPass:
+    sub esi, ebx
+    add esi, 8
+    cmp [si], byte 0
+    jnz .testFail
+    pop si
+    xor dx, dx
 
+    mov al, byte 'e'
+    call charInt
 ret
-
-
+.endFail:
+    xor dx, dx
+    inc dx
+        mov al, byte 'f'
+    call charInt
+ret
+CMOV_SIZE_OFFSET dw 4
+JE_OPCODE dw 0x0F84
+JG_OPCODE dw 0x0F8F
+JL_OPCODE dw 0x0F8C
+JGE_OPCODE dw 0x0F8D
+JLE_OPCODE dw 0x0F8E
 MEM_MAP_SIZE dw 0
 MEM_MAP_START equ 0x2000
 MEM_MAP_ENTRY_BASE dd 0
 MEM_MAP_ENTRY_SIZE dd 0
 MEM_MAP_ENTRY_TYPE dd 0
 MEM_MAP_ERR db 'Error building memory map', 0
-MEM_MAP_PTR dd MEM_MAP_START
+MEM_MAP_PTR dd MEM_MAP_START ;points to the end of the memory map
 KERNEL_MEM_PTR dd 0

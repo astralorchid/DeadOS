@@ -2,7 +2,7 @@ Free memory map array
 OFFSET:
     +0x0 - Base address
     +0x4 - memory chunk size
-    +0x9 - flag byte:
+    +0x8 - flag byte:
         bit 0: 1 - used
 
 FindMemMapEntry:

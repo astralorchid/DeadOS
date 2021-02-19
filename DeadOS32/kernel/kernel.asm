@@ -18,6 +18,11 @@ xor eax, eax
 mov ax, word [MEM_MAP_SIZE] 
 add eax, esi
 call PrintMemoryMap
+xor eax, eax
+mov dl, 10b
+call FindMemMapEntry
+mov ax, dx
+call h16
 jmp $
 call DisableVGACursor
 call DisableNMI
